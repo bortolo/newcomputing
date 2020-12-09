@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>RDS test</title>
+        <style>
+            a {text-decoration: none; color: black;}
+        </style>
+    </head>
+
+    <body>
+        <h1>Manage my RDS db</h1>
+
+        <table>
+           <tr>
+              <th>User</th><th>Mail</th><th>Age</th>
+           </tr>
+
+           <% for (var i = 0; i < obj.length; /* I save the data in a variable 'quotation', I don't know how you named your variable  */  i++) { %>
+            <tr>
+              <td><%= obj[i].username %></td>
+              <td><%= obj[i].email %></td>
+              <td><%= obj[i].age %></td>
+            </tr>
+           <% } %>
+        </table>
+
+        <form method="post" action="/view/add" novalidate>
+          <div class="form-field">
+            <label for="user">User name</label>
+            <input class="input" id="username" name="username" />
+          </div>
+          <div class="form-field">
+            <label for="email">Email</label>
+            <input class="input" id="email" name="email" type="email" value="" />
+          </div>
+          <div class="form-field">
+            <label for="age">Age</label>
+            <input class="input" id="age" name="age" />
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit">Send</button>
+          </div>
+        </form>
+
+    </body>
+</html>

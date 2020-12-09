@@ -1,0 +1,82 @@
+body {
+    font-family: Poppins, sans-serif;
+    background-color: rgb(255, 242, 121);
+    background-image: url("https://images.unsplash.com/photo-1584098113770-a5922198255a?ixid=MXwxMjA3fDB8MHxzZWFyY2h8Mnx8b3JhbmdlfGVufDB8fDB8&ixlib=rb-1.2.1&auto=format&fit=crop&w=900&q=60");
+    margin: 0;
+}
+
+main {
+    width: 70%;
+    height: 900px;
+    margin: 0 auto;
+    background-color: white;
+}
+
+h1 {
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin: 0 2rem 0.5em 2rem;
+    color: rgb(230, 152, 8);
+    padding-top: 1rem;
+}
+
+h2 {
+    font-weight: 400;
+    font-size: 1.5rem;
+    margin: 0 2rem 0.5em 2rem;
+    color: rgb(236, 167, 38);
+}
+
+p {
+    font-weight: 300;
+    font-size: 1rem;
+    margin: 0 2rem 0.5em 2rem;
+}
+
+label {
+    font-weight: 100;
+    font-size: 1rem;
+}
+
+textarea {
+    width: 100%;
+}
+
+button {
+    background-color: rgb(167, 167, 167);
+    color: rgb(224, 224, 224);
+    border: 1px solid rgb(199, 194, 194);
+    border-radius: 1em;
+    transition: 0.2s;
+    padding: 0.3em 1.5em;
+    font-size: 1rem;
+    margin: 0 2rem 0.5em 2rem;
+}
+
+button:hover {
+    background-color: rgb(236, 167, 38);
+    color: white;
+}
+
+hr {
+    width: 95%;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.success {
+    background-color: rgba(30, 145, 30, 0.719);
+    border-radius: 1em;
+    border: 1px solild green;
+    color: rgb(255, 255, 255);
+    margin: 0 2rem 0.5em 2rem;
+    text-align: center;
+    padding: 0.5em 0 0.5em 0;
+    transition: 1s;
+}

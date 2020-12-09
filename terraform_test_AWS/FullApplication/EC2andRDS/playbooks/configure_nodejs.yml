@@ -1,0 +1,50 @@
+---
+- hosts: all
+  remote_user: "{{user}}"
+
+  vars:
+    script_path_origin: ../node-rds/
+    script_path_target: /home/{{user}}/node-rds
+    script_name: set_db_credentials.sh
+    config_file: config.service
+    service_name: nodejs
+    user: ubuntu
+    db_seed: dbseed.js
+    node_app: index.js
+    db_username: "user"                           # This variable must be aligned to set_db_credentials.sh
+    db_password: "YourPwdShouldBeLongAndSecure!"  # This variable must be aligned to set_db_credentials.sh
+    db_private_dns: "database.example.com"        # This variable must be aligned to set_db_credentials.sh
+
+  tasks:
+
+    - name: Install nodejs
+      become: yes
+      apt:
+       update_cache: yes
+       pkg:
+       - nodejs
+
+    - name: Create script directory on target server
+      file:
+       path: "{{script_path_target}}"
+       state: directory
+
+    - name: Copy nodejs code to target
+      synchronize:
+       src: "{{script_path_origin}}"
+       dest: "{{script_path_target}}"
+
+    - name: Copy the systemctl config file
+      become: yes
+      copy:
+       src: "{{script_path_target}}/config.service"
+       dest: /lib/systemd/system/{{service_name}}.service
+       remote_src: yes
+
+    - name: restart service {{service_name}}, in all cases, also issue daemon-reload to pick up config changes
+      become: yes
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
+        name: "{{service_name}}"

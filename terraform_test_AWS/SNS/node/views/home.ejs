@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/app.css" type="text/css">
+    <title>Home SNS example</title>
+</head>
+
+<body>
+    <main>
+        <h1>AWS SNS Example</h1>
+        <p>
+            A very simple web page where you can test the AWS SNS service. Create a temporary mail at this <a href="https://www.mailinator.com/">site</a>, then you can do the exercise.
+        </p>
+        <hr>
+        <h2>Add a new subscriber</h2>
+        <p>Insert the email and submit to add a new subscriber to the topic</p>
+        <form method="post" action="/subscribe">
+            <p>
+                <label for="email_address">The email address of the new subscriber</label>
+                <br>
+                <input type="email" id="email_address" placeholder="example@mail.com" name=email required>
+            </p>
+            <button>Add</button>
+        </form>
+        <!-- Show the result -->
+        <% if (locals.email) { %>
+            <div class="success">
+                <p>Subscription request sent to
+                    <%= email %>
+                </p>
+            </div>
+            <% } %>
+                <hr>
+                <h2>Send a message to subscribers</h2>
+                <p>Write a message that will be delivered to the subscribed users. Don't forget to add an object.</p>
+                <form method="post" action="/send">
+                    <p>
+                        <label for="email_object">The email object</label>
+                        <br>
+                        <input type="text" id="email_object" placeholder="email object" name="subject" required>
+                    </p>
+                    <p>
+                        <label for="email_text">Write here the email content</label>
+                        <br>
+                        <textarea id="email_text" rows="10" cols="40" placeholder="Type the email content here..." name="message" required></textarea>
+                    </p>
+                    <button>Send</button>
+                </form>
+                <!-- Show the result -->
+                <% if (locals.sent) { %>
+                    <div class="success">
+                        <p>Message sent to everybody
+                        </p>
+                    </div>
+                    <% } %>
+                        <hr>
+    </main>
+</body>
+
+</html>

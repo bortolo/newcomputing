@@ -1,0 +1,81 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyAllOutsideRequestedRegions",
+            "Effect": "Deny",
+            "NotAction": [
+                "cloudfront:*",
+                "iam:*",
+                "route53:*",
+                "support:*",
+                "budgets:*",
+                "aws-portal:*",
+                "elasticloadbalancing:*"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "StringNotEquals": {
+                    "aws:RequestedRegion": [
+                        "eu-central-1"
+                    ]
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ec2:*",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Deny",
+            "Action": [
+                        "ec2:CreateNatGateway",
+                        "ec2:CreateVpnConnection",
+                        "ec2:CreateVpnConnectionRoute",
+                        "ec2:CreateVpnGateway"
+                      ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Deny",
+            "Action": [
+                        "ec2:RunInstances",
+                        "ec2:ModifyInstanceAttribute"
+                      ],
+            "Resource": "arn:aws:ec2:*:152371567679:instance/*",
+            "Condition": {
+                      "StringNotEqualsIfExists": {
+                          "ec2:InstanceType": "t2.micro"
+                      }
+                  }
+        },
+        {
+            "Effect": "Allow",
+            "Action": "elasticloadbalancing:*",
+            "Resource": "arn:aws:ec2:eu-central-1:152371567679:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "autoscaling:*",
+            "Resource": "arn:aws:ec2:eu-central-1:152371567679:*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "iam:CreateServiceLinkedRole",
+            "Resource": "arn:aws:ec2:eu-central-1:152371567679:*",
+            "Condition": {
+                "StringEquals": {
+                    "iam:AWSServiceName": [
+                        "autoscaling.amazonaws.com",
+                        "ec2scheduled.amazonaws.com",
+                        "elasticloadbalancing.amazonaws.com",
+                        "spot.amazonaws.com",
+                        "spotfleet.amazonaws.com",
+                        "transitgateway.amazonaws.com"
+                    ]
+                }
+            }
+        }
+    ]
+}

@@ -1,0 +1,14 @@
+[Unit]
+Description=index.js - manageRDS app
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/ubuntu/node-rds
+User=ubuntu
+Group=ubuntu
+ExecStart=/usr/bin/node index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

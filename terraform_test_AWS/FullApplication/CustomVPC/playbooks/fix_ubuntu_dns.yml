@@ -1,0 +1,17 @@
+---
+- hosts: all
+  remote_user: "{{user}}"
+
+  # Temporary Failure Resolving Error
+  # Sometime could happen that you have DNS problem with new instances
+  # Run the following playbook to fix this issue
+  # See - https://askubuntu.com/questions/91543/apt-get-update-fails-to-fetch-files-temporary-failure-resolving-error
+
+  vars:
+    user: ubuntu
+
+  tasks:
+
+    - name: Resolve DNS errors
+      become: yes
+      command: echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf > /dev/null

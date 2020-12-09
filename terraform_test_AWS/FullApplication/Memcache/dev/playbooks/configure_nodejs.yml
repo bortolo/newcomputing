@@ -1,0 +1,45 @@
+---
+- hosts: all
+  remote_user: "{{user}}"
+
+  vars:
+    script_path_origin: ../node-memcache/
+    script_path_target: /home/{{user}}/node-memcache
+    config_file: config.service
+    service_name: nodejs
+    user: ubuntu
+
+  tasks:
+
+    - name: Install nodejs and npm packages
+      become: yes
+      apt:
+       update_cache: yes
+       pkg:
+       - nodejs
+       - npm
+
+    - name: Create script directory on target server
+      file:
+       path: "{{script_path_target}}"
+       state: directory
+
+    - name: Copy nodejs code to target
+      synchronize:
+       src: "{{script_path_origin}}"
+       dest: "{{script_path_target}}"
+
+    - name: Copy the systemctl config file
+      become: yes
+      copy:
+       src: "{{script_path_target}}/{{config_file}}"
+       dest: /lib/systemd/system/{{service_name}}.service
+       remote_src: yes
+
+    - name: restart service {{service_name}}, in all cases, also issue daemon-reload to pick up config changes
+      become: yes
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        enabled: yes
+        name: "{{service_name}}"

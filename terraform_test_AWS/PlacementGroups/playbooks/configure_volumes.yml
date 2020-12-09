@@ -1,0 +1,15 @@
+---
+- hosts: all
+  remote_user: "{{user}}"
+
+  vars:
+    user: ubuntu
+
+  tasks:
+
+  - name: Install iperf3 test suite
+    become: yes
+    apt:
+     update_cache: yes
+     pkg:
+     - iperf3

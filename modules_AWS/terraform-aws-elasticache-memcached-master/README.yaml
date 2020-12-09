@@ -1,0 +1,105 @@
+#
+# This is the canonical configuration for the `README.md`
+# Run `make readme` to rebuild the `README.md`
+#
+
+# Name of this project
+name: terraform-aws-elasticache-memcached
+# Tags of this project
+tags:
+  - aws
+  - terraform
+  - terraform-modules
+  - databases
+  - memcached
+  - elasticache
+# Categories of this project
+categories:
+  - terraform-modules/databases
+# Logo for this project
+#logo: docs/logo.png
+
+# License of this project
+license: "APACHE2"
+# Canonical GitHub repo
+github_repo: cloudposse/terraform-aws-elasticache-memcached
+# Badges to display
+badges:
+  - name: "Latest Release"
+    image: "https://img.shields.io/github/release/cloudposse/terraform-aws-elasticache-memcached.svg"
+    url: "https://github.com/cloudposse/terraform-aws-elasticache-memcached/releases/latest"
+  - name: "Slack Community"
+    image: "https://slack.cloudposse.com/badge.svg"
+    url: "https://slack.cloudposse.com"
+related:
+  - name: "terraform-aws-elasticache-redis"
+    description: "Terraform module to provision an ElastiCache Redis Cluster"
+    url: "https://github.com/cloudposse/terraform-aws-elasticache-redis"
+  - name: "terraform-aws-elasticache-cloudwatch-sns-alarms"
+    description: "Terraform module that configures CloudWatch SNS alerts for ElastiCache"
+    url: "https://github.com/cloudposse/terraform-aws-elasticache-cloudwatch-sns-alarms"
+# Short description of this project
+description: |-
+  Terraform module to provision an [`ElastiCache`](https://aws.amazon.com/elasticache/) Memcached Cluster
+# How to use this project
+usage: |2-
+
+  For a complete example, see [examples/complete](examples/complete).
+
+  For automated tests of the complete example using [bats](https://github.com/bats-core/bats-core) and [Terratest](https://github.com/gruntwork-io/terratest) (which tests and deploys the example on AWS), see [test](test).
+
+  ```hcl
+    provider "aws" {
+      region = var.region
+    }
+
+    module "vpc" {
+      source     = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.8.1"
+      namespace  = var.namespace
+      stage      = var.stage
+      name       = var.name
+      cidr_block = "172.16.0.0/16"
+    }
+
+    module "subnets" {
+      source               = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.18.1"
+      availability_zones   = var.availability_zones
+      namespace            = var.namespace
+      stage                = var.stage
+      name                 = var.name
+      vpc_id               = module.vpc.vpc_id
+      igw_id               = module.vpc.igw_id
+      cidr_block           = module.vpc.vpc_cidr_block
+      nat_gateway_enabled  = false
+      nat_instance_enabled = false
+    }
+
+    module "memcached" {
+      source                  = "git::https://github.com/cloudposse/terraform-aws-elasticache-memcached.git?ref=master"
+      namespace               = var.namespace
+      stage                   = var.stage
+      name                    = var.name
+      availability_zones      = var.availability_zones
+      vpc_id                  = module.vpc.vpc_id
+      allowed_security_groups = [module.vpc.vpc_default_security_group_id]
+      subnets                 = module.subnets.private_subnet_ids
+      cluster_size            = var.cluster_size
+      instance_type           = var.instance_type
+      engine_version          = var.engine_version
+      apply_immediately       = true
+      zone_id                 = var.zone_id
+    }
+  ```
+examples: |-
+  Review the [complete example](examples/simple) to see how to use this module.
+include:
+  - "docs/targets.md"
+  - "docs/terraform.md"
+# Contributors to this project
+contributors:
+  - name: "Igor Rodionov"
+    github: "goruha"
+  - name: "Andriy Knysh"
+    github: "aknysh"
+  - name: "Erik Osterman"
+    github: "osterman"

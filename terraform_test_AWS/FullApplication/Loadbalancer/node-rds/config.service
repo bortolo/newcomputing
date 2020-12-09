@@ -1,0 +1,16 @@
+[Unit]
+Description=index.js - manageRDS app
+After=network.target
+
+[Service]
+Environment="TF_VAR_region=eu-central-1"
+Environment="TF_VAR_db_secret=db-secret-18"
+Type=simple
+WorkingDirectory=/home/ubuntu/node-rds
+User=ubuntu
+Group=ubuntu
+ExecStart=/usr/bin/node index.js
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

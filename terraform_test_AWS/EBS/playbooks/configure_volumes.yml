@@ -1,0 +1,54 @@
+---
+- hosts: all
+  remote_user: "{{user}}"
+
+  vars:
+    user: ubuntu
+    mount_path: /mnt/data
+    volume: xvdg
+
+    ############################################################################
+    # EBS volumes
+    # xvdf - standard
+    # xvdg - gp2
+    # xvdh - io1
+    # xvdi - io2
+    # xvdl - sc1
+    # xvdm - st1
+    ############################################################################
+
+  tasks:
+
+  - name: Install fio test suite
+    become: yes
+    apt:
+     update_cache: yes
+     pkg:
+     - fio
+
+  - name: Create script directory on target server
+    become: yes
+    file:
+     path: "{{mount_path}}"
+     state: directory
+     mode: 0777
+
+  - name: Create filesystem for standard EBS
+    become: yes
+    filesystem:
+     fstype: ext4
+     dev: /dev/{{volume}}
+
+  - name: Mount volume {{volume}}
+    become: yes
+    mount:
+     path: "{{mount_path}}"
+     src: "/dev/{{volume}}"
+     fstype: ext4
+     state: mounted
+
+  # - name: Unmount volume {{volume}}
+  #   become: yes
+  #   mount:
+  #    path: "{{mount_path}}"
+  #    state: unmounted

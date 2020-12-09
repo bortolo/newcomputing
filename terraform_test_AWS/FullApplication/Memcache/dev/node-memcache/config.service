@@ -1,0 +1,16 @@
+[Unit]
+Description=index.js - Memcache app
+After=network.target
+
+[Service]
+Type=simple
+Environment="PORT=8080"
+Environment="MEMCACHIER_SERVERS=memcache-dev.ksjsud.cfg.euc1.cache.amazonaws.com:11211"
+WorkingDirectory=/home/ubuntu/node-memcache
+User=ubuntu
+Group=ubuntu
+ExecStart=npm start
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
