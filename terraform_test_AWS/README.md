@@ -1,30 +1,52 @@
 # AWS tests
 
-Here you can find many different deployments with terraform and ansible.
-We are extensively using these terraform [modules](../modules_AWS), so please download also this folder to run with success the following examples.
+Welcome to the ***AWS test*** section, here you can find several examples of AWS resource deployments. All the folders include at least some ***.tf*** files to deploy AWS resources through terraform commands. Some subfolders may also include ***.yml*** files (ansible deployments), javascript files (we mainly use node.js app for our examples) and ***.io*** files (we use draw.io to draw AWS architectures).
+The typical folder structure is the following:
+- main.tf
+- outputs.tf
+- variables.tf
+- versions.tf
+- input.tfvars
+- README.md
+- **playbook**
+- **node**
+- **images**
 
-Have a look to [this](https://learn.hashicorp.com/tutorials/terraform/aws-build) brief guide about terraform, if you are a beginner using terraform on AWS.
-
+## Examples
 This is the list of the available tests with a short description. Click on one of them if you are interested to examine in depth.
 
-- **[Start from VPC and EC2](./VPC)**
+### Single examples
+
+- **[Example - S01](./CloudWatch)**
   - **Status**, DONE (alpha)
-  - **Description**, deploy a custom VPC and several EC2 instances to test route tables from remote workstation and inside AWS.
-- **[Try an application deployment](./FullApplication)**
-  - **Status**, DONE (alpha)
-  - **Description**, deploy a node.js app on EC2 and work with RDS, SecretsManager, VPC peering.
-- **[Test EBS volume performances](./EBS)**
+  - **Description**, deploy some EC2 instances and monitor them through CloudWatch dashboard.
+- **[Example - S02](./SQS)**
+  - **Status**, WIP
+  - **Description**, WIP
+- **[Example - S03](./SNS)**
+  - **Status**, WIP
+  - **Description**, WIP
+- **[Example - S04](./EBS)**
   - **Status**, DONE (alpha)
   - **Description**, create several EBS volumes and test their performances (IOPS, latency and throughput).
-- **[IAM](./IAM)**
+- **[Example - S05](./VPC)**
+  - **Status**, DONE (alpha)
+  - **Description**, deploy a custom VPC and several EC2 instances to test route tables from remote workstation and inside AWS.
+  - **[Example - S06](./IAM)**
   - **Status**, WIP
-  - **Description**, create several users and groups. Assign users to groups and upload custom policies.
-- **[Deploy a react website on S3](./S3website)**
+  - **Description**, create several users and groups on AWS IAM. Assign users to groups and upload custom policies.
+- **[Example - S07](./S3website)**
   - **Status**, WIP
-  - **Description**, WIP
-- **[Deploy EC2 and EBS, set backup jobs](./Backup)**
+  - **Description**, deploy a react website on S3
+- **[Example - S08](./Backup)**
   - **Status**, WIP
-  - **Description**, WIP
+  - **Description**, deploy EC2 and EBS, set backup jobs
+
+### Multi Step examples
+
+- **[Example - MS01](./FullApplication)**
+  - **Status**, DONE (alpha)
+  - **Description**, deploy a node.js app on EC2 and work with RDS, SecretsManager, VPC peering and several others AWS services.
 
 ## Getting started
 ### Install and configure terraform
