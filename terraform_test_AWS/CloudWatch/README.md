@@ -41,7 +41,17 @@ terraform apply -var-file="input.tfvars"
 
 If you want to print again the outputs after you already run the `terraform apply` command you can just run `terraform output`
 
+Run `./ec2.py` inside the ***playbook*** folder to see what you deployed. For each EC2 instance with public ip will receive back several useful informations in a JSON format. At the end of this output the EC2 instances are grouped following several tag strategies. Use these strategy to deploy ansible playbooks (see **Tests** secion).
+
 Note that this example may create resources which can cost money. When you don't need these resources just run:
 ```
 terraform destroy -var-file="input.tfvars"
 ```
+
+## Tests
+
+Run ansible playbook to configure ***stress*** package and launch your preferred OS test (CPU, memory, IO ...).
+```
+ansible-playbook -i ./ec2.py ./configure_nodejs.yml -l tag_Environment_dev
+```
+

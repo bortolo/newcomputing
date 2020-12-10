@@ -5,7 +5,7 @@
   vars:
     user: ubuntu
     cpu: 1
-    seconds: 300
+    seconds: 30
 
   tasks:
 
