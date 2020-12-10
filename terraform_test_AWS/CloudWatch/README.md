@@ -1,4 +1,4 @@
-# Cloudwath Dashboards
+# Cloudwatch Dashboards
 
 Deploy three EC2 instances and monitor them through a Cloudwatch dashboard. Run some stress test to see CPU usage and CPUcredit usage.
 
