@@ -1,0 +1,20 @@
+---
+- hosts: all
+  remote_user: "{{user}}"
+
+  vars:
+    user: ubuntu
+    cpu: 1
+    seconds: 300
+
+  tasks:
+
+    - name: Install stress
+      become: yes
+      apt:
+       update_cache: yes
+       pkg:
+       - stress
+
+    - name: Run stress command
+      command: stress --cpu {{cpu}} --timeout {{seconds}}
