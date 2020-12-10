@@ -11,8 +11,8 @@ Deploy three EC2 instances and monitor them through a Cloudwatch dashboard. Run 
 
 | Automation | Time |
 |------|---------|
-| Time to deploy (Terraform) | 2 min |
-| Time to deploy (Ansible) | 30 sec |
+| Time to deploy (Terraform) | 1 min |
+| Time to deploy (Ansible) | 1 min |
 | Time to destroy | 1 min |
 
 ## Useful link
