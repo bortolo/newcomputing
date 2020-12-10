@@ -13,6 +13,7 @@ The typical folder structure is the following:
 - **images**
 
 ## Examples
+
 This is the list of the available tests with a short description. Click on one of them if you are interested to examine in depth.
 
 ### Single examples
@@ -32,7 +33,7 @@ This is the list of the available tests with a short description. Click on one o
 - **[Example - S05](./VPC)**
   - **Status**, DONE (alpha)
   - **Description**, deploy a custom VPC and several EC2 instances to test route tables from remote workstation and inside AWS.
-  - **[Example - S06](./IAM)**
+- **[Example - S06](./IAM)**
   - **Status**, WIP
   - **Description**, create several users and groups on AWS IAM. Assign users to groups and upload custom policies.
 - **[Example - S07](./S3website)**
