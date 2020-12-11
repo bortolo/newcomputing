@@ -21,6 +21,10 @@ Deploy three EC2 instances and monitor them through a Cloudwatch dashboard. Run 
 
 [stress e stress-ng suite](https://www.cyberciti.biz/faq/stress-test-linux-unix-server-with-stress-ng/)
 
+[AWS logs on ubuntu](https://devopscube.com/setup-aws-logs-agent-ubuntu-16/)
+
+[AWS CloudWatchLogs education](https://ibm-learning.udemy.com/course/aws-certified-solutions-architect-associate-saa-c02/learn/lecture/13723104#overview) ***(only for IBMers)***
+
 ## Usage
 
 Update the `input.tfvars` file with your own inputs (es. `example_input.tfvars`).

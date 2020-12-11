@@ -1,0 +1,37 @@
+---
+- hosts: all
+  remote_user: "{{user}}"
+
+  vars:
+    user: ec2-user
+    cpu: 1
+    seconds: 30
+    region: eu-central-1
+    conf_path_origin: ./awscli.conf
+    conf_path_target: /etc/awslogs/awscli.conf
+
+  tasks:
+
+    - name: Install stress
+      become: yes
+      yum:
+        update_cache: yes
+        name:
+        - awslogs
+        state: present
+
+    - name: Copy config files for log groups
+      become: yes
+      copy:
+       src: "{{conf_path_origin}}"
+       dest: "{{conf_path_target}}"
+    
+    - name: Start  AWS log service
+      become: yes
+      systemd:
+        state: started
+        name: awslogsd
+ 
+    # TODO: understand the procedure to install stress from yum repository or find an alternative tool for stress tests
+    # - name: Run stress command
+    #   command: stress --cpu {{cpu}} --timeout {{seconds}}

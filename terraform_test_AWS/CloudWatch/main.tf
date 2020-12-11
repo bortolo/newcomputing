@@ -160,6 +160,27 @@ resource "aws_key_pair" "this" {
   tags = local.user_tag
 }
 
+
+################################################################################
+# IAM assumable role with custom policies
+################################################################################
+module "iam_assumable_role_custom" {
+  source            = "../../modules_AWS/terraform-aws-iam-master/modules/iam-assumable-role"
+  trusted_role_arns = []
+  trusted_role_services = [
+    "ec2.amazonaws.com"
+  ]
+  create_role             = true
+  create_instance_profile = true
+  role_name               = var.iam_cloudwatch_logs
+  role_requires_mfa       = false
+  custom_role_policy_arns = [
+    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
+  ]
+
+  tags = local.user_tag
+}
+
 ################################################################################
 # EC2
 ################################################################################
@@ -200,7 +221,7 @@ module "ec2" {
   monitoring                  = false
   vpc_security_group_ids      = [module.aws_security_group.this_security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all.ids)[0]
-  //iam_instance_profile        = var.ec2_iam_role_name //it is highly dependent on terraform custom module
+  iam_instance_profile        = var.iam_cloudwatch_logs
   //user_data                   = var.ec2_user_data
 
   tags = local.user_tag
