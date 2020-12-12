@@ -253,3 +253,23 @@ module "aws_security_group" {
 
   tags = local.user_tag
 }
+
+################################################################################
+# Cloudwatch - Alarm
+################################################################################
+resource "aws_cloudwatch_metric_alarm" "foobar" {
+  count                     = length(module.ec2.id) 
+  alarm_name                = "half-CPUutilization-${count.index}"
+  comparison_operator       = "GreaterThanOrEqualToThreshold"
+  evaluation_periods        = "2"
+  metric_name               = "CPUUtilization"
+  namespace                 = "AWS/EC2"
+  period                    = "120"
+  statistic                 = "Average"
+  threshold                 = "50"
+  alarm_description         = "This metric monitors ec2 cpu utilization"
+  dimensions = {
+    InstanceId = module.ec2.id[count.index]
+  }
+  tags = local.user_tag
+}
