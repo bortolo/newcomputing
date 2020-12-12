@@ -67,7 +67,7 @@ resource "aws_cloudwatch_dashboard" "main" {
 {
   "widgets": [
     {
-      "start": "-PT1H",
+      "start": "-PT30M",
       "type": "metric",
       "x": 0,
       "y": 0,
@@ -84,7 +84,7 @@ resource "aws_cloudwatch_dashboard" "main" {
       }
     },
     {
-      "start": "-PT1H",
+      "start": "-PT30M",
       "type": "metric",
       "x": 0,
       "y": 1,
@@ -101,7 +101,7 @@ resource "aws_cloudwatch_dashboard" "main" {
       }
     },
     {
-      "start": "-PT1H",
+      "start": "-PT30M",
       "type": "metric",
       "x": 0,
       "y": 2,
