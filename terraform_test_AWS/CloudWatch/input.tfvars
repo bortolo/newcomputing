@@ -6,4 +6,5 @@ ec2_name                = <name-your-ec2-instance>
 ec2_number_of_instances = <number-of-instances>
 ec2_ami_id              = <a-valid-ami-code>
 ec2_instance_type       = <a-valid-aws-instance-size>
+ec2_detailed_monitoring = <true-if-you-want-to-activated-EC2-detailed-monitoring>
 ec2_public_ip           = <true-if-you-want-to-access-from-public-ip>

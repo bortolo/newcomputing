@@ -75,9 +75,9 @@ resource "aws_cloudwatch_dashboard" "main" {
       "height": 6,
       "properties": {
         "metrics":[
-               [ { "expression": "SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUUtilization\"', 'Average', 300)", "id": "e1" } ]
+               [ { "expression": "SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUUtilization\"', 'Average', 1)", "id": "e1" } ]
             ],
-        "period": 300,
+        "period": 5,
         "stat": "Average",
         "region": "eu-central-1",
         "title": "EC2 Instance CPU"
@@ -92,9 +92,9 @@ resource "aws_cloudwatch_dashboard" "main" {
       "height": 6,
       "properties": {
         "metrics":[
-               [ { "expression": "SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUCreditUsage\"', 'Average', 300)", "id": "e1" } ]
+               [ { "expression": "SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUCreditUsage\"', 'Average', 1)", "id": "e1" } ]
             ],
-        "period": 300,
+        "period": 5,
         "stat": "Average",
         "region": "eu-central-1",
         "title": "EC2 Instance CPU Credit Usage"
@@ -109,9 +109,9 @@ resource "aws_cloudwatch_dashboard" "main" {
       "height": 6,
       "properties": {
         "metrics":[
-               [ { "expression": "SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUCreditBalance\"', 'Average', 300)", "id": "e1" } ]
+               [ { "expression": "SEARCH('{AWS/EC2,InstanceId} MetricName=\"CPUCreditBalance\"', 'Average', 1)", "id": "e1" } ]
             ],
-        "period": 300,
+        "period": 5,
         "stat": "Average",
         "region": "eu-central-1",
         "title": "EC2 Instance CPU Credit Balance"
@@ -218,7 +218,7 @@ module "ec2" {
   instance_type               = var.ec2_instance_type
   key_name                    = var.key_pair_name
   associate_public_ip_address = var.ec2_public_ip
-  monitoring                  = false
+  monitoring                  = var.ec2_detailed_monitoring
   vpc_security_group_ids      = [module.aws_security_group.this_security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all.ids)[0]
   iam_instance_profile        = var.iam_cloudwatch_logs

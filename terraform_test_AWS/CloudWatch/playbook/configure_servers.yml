@@ -5,7 +5,7 @@
   vars:
     user: ec2-user
     cpu: 1
-    seconds: 300
+    seconds: 120
     region: eu-central-1
     conf_path_origin: ./awscli.conf
     conf_path_target: /etc/awslogs/awscli.conf
