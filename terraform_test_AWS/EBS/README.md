@@ -29,33 +29,38 @@ Deploy an EC2 instance and several EBS volumes to test them.
 
 ## Usage
 
-### Set up environment
-
-Generete your [public ssh key](https://www.ssh.com/ssh/keygen/) and update `main.tf` file with your `id_rsa.pub` in the field `public_key` of the `aws_key_pair` resource.
-
-Now you can deploy the ec2 and the db instance with terraform.
-
 ### Deploy
 
-To run this example you need to execute:
+Update the `input.tfvars` file with your own inputs (es. `example_input.tfvars`).
+Don't forget to generate your [public ssh key](https://www.ssh.com/ssh/keygen/).
+
+Initialize terraform root module with all the provider plugins and module needed to run this example:
+```
+terraform init
+```
+Verify with `terraform plan` command if everything is ok
+```
+terraform plan -var-file="input.tfvars"
+```
+Now you can deploy the AWS resources with terraform.
 
 ```
-$ terraform init
-$ terraform plan
-$ terraform apply
+terraform apply -var-file="input.tfvars"
 ```
+
+If you want to print again the outputs after you already run the `terraform apply` command you can just run `terraform output`
 
 Note that this example may create resources which can cost money. Run `terraform destroy` when you don't need these resources.
 
 ### Deploy test suite and mount disk
 
-Choose which EBS volume you want to test in the `configure_volumes.yml` file.
+Choose which EBS volume you want to test in the `configure_volumes.yml` file and select `mount` action, then run ansible-playbook:
 
 ```
 ansible-playbook -i ./ec2.py ./configure_volumes.yml -l tag_Name_public_server
 ```
 
-Login on your EC2 instance and run the `lsblk` command. You should see something like this:
+Login on your EC2 instance and run the `lsblk` command. You should see something like this (depending on which disk you deployed):
 
 ```
 NAME    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
@@ -119,7 +124,7 @@ Run status group 0 (all jobs):
 Disk stats (read/write):
   xvdm: ios=7779/8399, merge=0/6, ticks=2667402/4425797, in_queue=7061140, util=53.56%
 ```
-If you want to test a different volume just uncomment the unmount section in the `configure_volumes.yml` and run the playbook. Then comment again the unmount section and choose a different volume. You are ready to start e new test.
+If you want to test a different volume just unmount the on-line volume (select `unmount` as action variable)and run again the playbook. Then select again the the mount action and choose a different volume. You are ready to start e new test.
 
 ## Requirements
 

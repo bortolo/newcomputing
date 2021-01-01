@@ -1,0 +1,573 @@
+{
+  "version": 4,
+  "terraform_version": "0.13.5",
+  "serial": 56,
+  "lineage": "b335df12-c185-6f0c-5530-dada94ddbf5f",
+  "outputs": {
+    "public_ips": {
+      "value": [
+        "18.196.198.24"
+      ],
+      "type": [
+        "tuple",
+        [
+          "string"
+        ]
+      ]
+    }
+  },
+  "resources": [
+    {
+      "mode": "data",
+      "type": "aws_subnet_ids",
+      "name": "all",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "filter": null,
+            "id": "vpc-e0e1f68b",
+            "ids": [
+              "subnet-0fa05e65",
+              "subnet-3a023747",
+              "subnet-c5251d88"
+            ],
+            "tags": null,
+            "vpc_id": "vpc-e0e1f68b"
+          }
+        }
+      ]
+    },
+    {
+      "mode": "data",
+      "type": "aws_vpc",
+      "name": "default",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:152371567679:vpc/vpc-e0e1f68b",
+            "cidr_block": "172.31.0.0/16",
+            "cidr_block_associations": [
+              {
+                "association_id": "vpc-cidr-assoc-bd46a1d6",
+                "cidr_block": "172.31.0.0/16",
+                "state": "associated"
+              }
+            ],
+            "default": true,
+            "dhcp_options_id": "dopt-30a6b15b",
+            "enable_dns_hostnames": true,
+            "enable_dns_support": true,
+            "filter": null,
+            "id": "vpc-e0e1f68b",
+            "instance_tenancy": "default",
+            "ipv6_association_id": null,
+            "ipv6_cidr_block": null,
+            "main_route_table_id": "rtb-4f27ae25",
+            "owner_id": "152371567679",
+            "state": "available",
+            "tags": {}
+          }
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_cloudwatch_dashboard",
+      "name": "main",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "dashboard_arn": "arn:aws:cloudwatch::152371567679:dashboard/First_Dashboard",
+            "dashboard_body": "{\n  \"widgets\": [\n    {\n      \"start\": \"-PT30M\",\n      \"type\": \"metric\",\n      \"x\": 0,\n      \"y\": 0,\n      \"width\": 12,\n      \"height\": 6,\n      \"properties\": {\n        \"metrics\":[\n               [ { \"expression\": \"SEARCH('{AWS/EC2,InstanceId} MetricName=\\\"CPUUtilization\\\"', 'Average', 1)\", \"id\": \"e1\" } ]\n            ],\n        \"period\": 5,\n        \"stat\": \"Average\",\n        \"region\": \"eu-central-1\",\n        \"title\": \"EC2 Instance CPU\"\n      }\n    },\n    {\n      \"start\": \"-PT30M\",\n      \"type\": \"metric\",\n      \"x\": 0,\n      \"y\": 1,\n      \"width\": 12,\n      \"height\": 6,\n      \"properties\": {\n        \"metrics\":[\n               [ { \"expression\": \"SEARCH('{AWS/EC2,InstanceId} MetricName=\\\"CPUCreditUsage\\\"', 'Average', 1)\", \"id\": \"e1\" } ]\n            ],\n        \"period\": 5,\n        \"stat\": \"Average\",\n        \"region\": \"eu-central-1\",\n        \"title\": \"EC2 Instance CPU Credit Usage\"\n      }\n    },\n    {\n      \"start\": \"-PT30M\",\n      \"type\": \"metric\",\n      \"x\": 0,\n      \"y\": 2,\n      \"width\": 12,\n      \"height\": 6,\n      \"properties\": {\n        \"metrics\":[\n               [ { \"expression\": \"SEARCH('{AWS/EC2,InstanceId} MetricName=\\\"CPUCreditBalance\\\"', 'Average', 1)\", \"id\": \"e1\" } ]\n            ],\n        \"period\": 5,\n        \"stat\": \"Average\",\n        \"region\": \"eu-central-1\",\n        \"title\": \"EC2 Instance CPU Credit Balance\"\n      }\n    }\n  ]\n}\n",
+            "dashboard_name": "First_Dashboard",
+            "id": "First_Dashboard"
+          },
+          "private": "bnVsbA=="
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_cloudwatch_metric_alarm",
+      "name": "foobar",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "actions_enabled": true,
+            "alarm_actions": null,
+            "alarm_description": "This metric monitors ec2 cpu utilization",
+            "alarm_name": "half-CPUutilization-0",
+            "arn": "arn:aws:cloudwatch:eu-central-1:152371567679:alarm:half-CPUutilization-0",
+            "comparison_operator": "GreaterThanOrEqualToThreshold",
+            "datapoints_to_alarm": 0,
+            "dimensions": {
+              "InstanceId": "i-0f5e882217b4f1f4c"
+            },
+            "evaluate_low_sample_count_percentiles": "",
+            "evaluation_periods": 2,
+            "extended_statistic": "",
+            "id": "half-CPUutilization-0",
+            "insufficient_data_actions": null,
+            "metric_name": "CPUUtilization",
+            "metric_query": [],
+            "namespace": "AWS/EC2",
+            "ok_actions": null,
+            "period": 120,
+            "statistic": "Average",
+            "tags": {
+              "Owner": "andrea",
+              "Test": "Cloudwatch"
+            },
+            "threshold": 50,
+            "threshold_metric_id": "",
+            "treat_missing_data": "missing",
+            "unit": ""
+          },
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "data.aws_subnet_ids.all",
+            "data.aws_vpc.default",
+            "module.aws_security_group.aws_security_group.this",
+            "module.aws_security_group.aws_security_group.this_name_prefix",
+            "module.ec2.aws_instance.this"
+          ]
+        }
+      ]
+    },
+    {
+      "mode": "managed",
+      "type": "aws_key_pair",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:152371567679:key-pair/cloudwatch-key",
+            "fingerprint": "20:bd:66:2e:e8:e1:c4:91:8c:0e:47:56:12:98:9c:a6",
+            "id": "cloudwatch-key",
+            "key_name": "cloudwatch-key",
+            "key_name_prefix": null,
+            "key_pair_id": "key-05e3c9dc62f65c9b0",
+            "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCVPI+y9VK/2KhV0kNH1boKE3xTkVIo57fWX1qf8+AR4uu+IIr1sM4LLWcbhTR4WY8okfzv9LoCl/LWg30ODsbLuYX2heamZOuSg5CyFSJj6i2RgS2M2wppKLo13+tEqUm4c4E6dnVk2YHeDs7A5asL1IUGnqvcpey2+ZMTgCEa6nfqxitSl3wWSuMZpNUTXtnQh/3Yp1dMlHjdUuiUCHEKIPyHdz2mF/i6yEf4RPLFWVKpX+o1TpfnoVlFipiobcqiZ0SOOgJsbqWGrykrdnYbvOYtKBpNF3OSTZdBaxRHtH907ykre+9gqTPnQFqq3hncUNQuQvpiv9SlZyuCVmr5 andreabortolossi@Andreas-MBP.lan",
+            "tags": {
+              "Owner": "andrea",
+              "Test": "Cloudwatch"
+            }
+          },
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjEifQ=="
+        }
+      ]
+    },
+    {
+      "module": "module.aws_security_group",
+      "mode": "managed",
+      "type": "aws_security_group",
+      "name": "this_name_prefix",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "arn": "arn:aws:ec2:eu-central-1:152371567679:security-group/sg-0aaf314c336177d9e",
+            "description": "Security group for front-end servers",
+            "egress": [],
+            "id": "sg-0aaf314c336177d9e",
+            "ingress": [],
+            "name": "FE_security_group-20201220115412056000000001",
+            "name_prefix": "FE_security_group-",
+            "owner_id": "152371567679",
+            "revoke_rules_on_delete": false,
+            "tags": {
+              "Name": "FE_security_group",
+              "Owner": "andrea",
+              "Test": "Cloudwatch"
+            },
+            "timeouts": null,
+            "vpc_id": "vpc-e0e1f68b"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6NjAwMDAwMDAwMDAwfSwic2NoZW1hX3ZlcnNpb24iOiIxIn0=",
+          "dependencies": [
+            "data.aws_vpc.default"
+          ],
+          "create_before_destroy": true
+        }
+      ]
+    },
+    {
+      "module": "module.aws_security_group",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "egress_with_cidr_blocks",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 2,
+          "attributes": {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "allow all outbound",
+            "from_port": 0,
+            "id": "sgrule-980006091",
+            "ipv6_cidr_blocks": null,
+            "prefix_list_ids": [],
+            "protocol": "-1",
+            "security_group_id": "sg-0aaf314c336177d9e",
+            "self": false,
+            "source_security_group_id": null,
+            "to_port": 0,
+            "type": "egress"
+          },
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjIifQ==",
+          "dependencies": [
+            "data.aws_vpc.default",
+            "module.aws_security_group.aws_security_group.this",
+            "module.aws_security_group.aws_security_group.this_name_prefix"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.aws_security_group",
+      "mode": "managed",
+      "type": "aws_security_group_rule",
+      "name": "ingress_with_cidr_blocks",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 2,
+          "attributes": {
+            "cidr_blocks": [
+              "0.0.0.0/0"
+            ],
+            "description": "SSH port",
+            "from_port": 22,
+            "id": "sgrule-2060834793",
+            "ipv6_cidr_blocks": null,
+            "prefix_list_ids": [],
+            "protocol": "tcp",
+            "security_group_id": "sg-0aaf314c336177d9e",
+            "self": false,
+            "source_security_group_id": null,
+            "to_port": 22,
+            "type": "ingress"
+          },
+          "private": "eyJzY2hlbWFfdmVyc2lvbiI6IjIifQ==",
+          "dependencies": [
+            "data.aws_vpc.default",
+            "module.aws_security_group.aws_security_group.this",
+            "module.aws_security_group.aws_security_group.this_name_prefix"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.ec2",
+      "mode": "managed",
+      "type": "aws_instance",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 1,
+          "attributes": {
+            "ami": "ami-0bd39c806c2335b95",
+            "arn": "arn:aws:ec2:eu-central-1:152371567679:instance/i-0f5e882217b4f1f4c",
+            "associate_public_ip_address": true,
+            "availability_zone": "eu-central-1a",
+            "cpu_core_count": 1,
+            "cpu_threads_per_core": 1,
+            "credit_specification": [
+              {
+                "cpu_credits": "standard"
+              }
+            ],
+            "disable_api_termination": false,
+            "ebs_block_device": [],
+            "ebs_optimized": false,
+            "ephemeral_block_device": [],
+            "get_password_data": false,
+            "hibernation": false,
+            "host_id": null,
+            "iam_instance_profile": "CloudWatchLogs",
+            "id": "i-0f5e882217b4f1f4c",
+            "instance_initiated_shutdown_behavior": "",
+            "instance_state": "running",
+            "instance_type": "t2.micro",
+            "ipv6_address_count": 0,
+            "ipv6_addresses": [],
+            "key_name": "cloudwatch-key",
+            "metadata_options": [
+              {
+                "http_endpoint": "enabled",
+                "http_put_response_hop_limit": 1,
+                "http_tokens": "optional"
+              }
+            ],
+            "monitoring": true,
+            "network_interface": [],
+            "network_interface_id": null,
+            "outpost_arn": "",
+            "password_data": "",
+            "placement_group": "",
+            "primary_network_interface_id": "eni-0fbe725ed6310a934",
+            "private_dns": "ip-172-31-30-29.eu-central-1.compute.internal",
+            "private_ip": "172.31.30.29",
+            "public_dns": "ec2-18-196-198-24.eu-central-1.compute.amazonaws.com",
+            "public_ip": "18.196.198.24",
+            "root_block_device": [
+              {
+                "delete_on_termination": true,
+                "device_name": "/dev/xvda",
+                "encrypted": false,
+                "iops": 100,
+                "kms_key_id": "",
+                "volume_id": "vol-0f7be45d1c37d367d",
+                "volume_size": 8,
+                "volume_type": "gp2"
+              }
+            ],
+            "security_groups": [
+              "FE_security_group-20201220115412056000000001"
+            ],
+            "source_dest_check": true,
+            "subnet_id": "subnet-0fa05e65",
+            "tags": {
+              "Name": "fe_server-dev",
+              "Owner": "andrea",
+              "Test": "Cloudwatch"
+            },
+            "tenancy": "default",
+            "timeouts": null,
+            "user_data": null,
+            "user_data_base64": null,
+            "volume_tags": {
+              "Name": "fe_server-dev"
+            },
+            "vpc_security_group_ids": [
+              "sg-0aaf314c336177d9e"
+            ]
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo2MDAwMDAwMDAwMDAsImRlbGV0ZSI6MTIwMDAwMDAwMDAwMCwidXBkYXRlIjo2MDAwMDAwMDAwMDB9LCJzY2hlbWFfdmVyc2lvbiI6IjEifQ==",
+          "dependencies": [
+            "data.aws_subnet_ids.all",
+            "data.aws_vpc.default",
+            "module.aws_security_group.aws_security_group.this",
+            "module.aws_security_group.aws_security_group.this_name_prefix"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.iam_assumable_role_custom",
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "assume_role",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "3324195322",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"AWS\": [],\n        \"Service\": \"ec2.amazonaws.com\"\n      }\n    }\n  ]\n}",
+            "override_json": null,
+            "policy_id": null,
+            "source_json": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "ec2.amazonaws.com"
+                    ],
+                    "type": "Service"
+                  },
+                  {
+                    "identifiers": [],
+                    "type": "AWS"
+                  }
+                ],
+                "resources": [],
+                "sid": ""
+              }
+            ],
+            "version": "2012-10-17"
+          }
+        }
+      ]
+    },
+    {
+      "module": "module.iam_assumable_role_custom",
+      "mode": "data",
+      "type": "aws_iam_policy_document",
+      "name": "assume_role_with_mfa",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "474030925",
+            "json": "{\n  \"Version\": \"2012-10-17\",\n  \"Statement\": [\n    {\n      \"Sid\": \"\",\n      \"Effect\": \"Allow\",\n      \"Action\": \"sts:AssumeRole\",\n      \"Principal\": {\n        \"AWS\": [],\n        \"Service\": \"ec2.amazonaws.com\"\n      },\n      \"Condition\": {\n        \"Bool\": {\n          \"aws:MultiFactorAuthPresent\": \"true\"\n        },\n        \"NumericLessThan\": {\n          \"aws:MultiFactorAuthAge\": \"86400\"\n        }\n      }\n    }\n  ]\n}",
+            "override_json": null,
+            "policy_id": null,
+            "source_json": null,
+            "statement": [
+              {
+                "actions": [
+                  "sts:AssumeRole"
+                ],
+                "condition": [
+                  {
+                    "test": "Bool",
+                    "values": [
+                      "true"
+                    ],
+                    "variable": "aws:MultiFactorAuthPresent"
+                  },
+                  {
+                    "test": "NumericLessThan",
+                    "values": [
+                      "86400"
+                    ],
+                    "variable": "aws:MultiFactorAuthAge"
+                  }
+                ],
+                "effect": "Allow",
+                "not_actions": [],
+                "not_principals": [],
+                "not_resources": [],
+                "principals": [
+                  {
+                    "identifiers": [
+                      "ec2.amazonaws.com"
+                    ],
+                    "type": "Service"
+                  },
+                  {
+                    "identifiers": [],
+                    "type": "AWS"
+                  }
+                ],
+                "resources": [],
+                "sid": ""
+              }
+            ],
+            "version": "2012-10-17"
+          }
+        }
+      ]
+    },
+    {
+      "module": "module.iam_assumable_role_custom",
+      "mode": "managed",
+      "type": "aws_iam_instance_profile",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::152371567679:instance-profile/CloudWatchLogs",
+            "create_date": "2020-12-20T11:54:13Z",
+            "id": "CloudWatchLogs",
+            "name": "CloudWatchLogs",
+            "name_prefix": null,
+            "path": "/",
+            "role": "CloudWatchLogs",
+            "roles": [],
+            "unique_id": "AIPASG6QNTQ72PXZZSLF6"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.iam_assumable_role_custom.aws_iam_role.this",
+            "module.iam_assumable_role_custom.data.aws_iam_policy_document.assume_role",
+            "module.iam_assumable_role_custom.data.aws_iam_policy_document.assume_role_with_mfa"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.iam_assumable_role_custom",
+      "mode": "managed",
+      "type": "aws_iam_role",
+      "name": "this",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "arn": "arn:aws:iam::152371567679:role/CloudWatchLogs",
+            "assume_role_policy": "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Sid\":\"\",\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"ec2.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}",
+            "create_date": "2020-12-20T11:54:12Z",
+            "description": "",
+            "force_detach_policies": false,
+            "id": "CloudWatchLogs",
+            "max_session_duration": 3600,
+            "name": "CloudWatchLogs",
+            "name_prefix": null,
+            "path": "/",
+            "permissions_boundary": "",
+            "tags": {
+              "Owner": "andrea",
+              "Test": "Cloudwatch"
+            },
+            "unique_id": "AROASG6QNTQ76BYMFZJYW"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.iam_assumable_role_custom.data.aws_iam_policy_document.assume_role",
+            "module.iam_assumable_role_custom.data.aws_iam_policy_document.assume_role_with_mfa"
+          ]
+        }
+      ]
+    },
+    {
+      "module": "module.iam_assumable_role_custom",
+      "mode": "managed",
+      "type": "aws_iam_role_policy_attachment",
+      "name": "custom",
+      "provider": "provider[\"registry.terraform.io/hashicorp/aws\"]",
+      "instances": [
+        {
+          "index_key": 0,
+          "schema_version": 0,
+          "attributes": {
+            "id": "CloudWatchLogs-20201220115413936100000002",
+            "policy_arn": "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
+            "role": "CloudWatchLogs"
+          },
+          "private": "bnVsbA==",
+          "dependencies": [
+            "module.iam_assumable_role_custom.aws_iam_role.this",
+            "module.iam_assumable_role_custom.data.aws_iam_policy_document.assume_role",
+            "module.iam_assumable_role_custom.data.aws_iam_policy_document.assume_role_with_mfa"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "eu-central-1"
+  region = var.region
 }
 
 locals {
@@ -16,17 +16,19 @@ locals {
 # standard EBS (read: 1484 IOPS / write: 1484 IOPS)
 ################################################################################
 resource "aws_ebs_volume" "standard" {
+  count = var.standard_create ? 1 : 0
   availability_zone = "eu-central-1a"
-  size              = 16
+  size              = var.standard_size
   type              = "standard"
 
   tags = local.user_tag
 }
 
 resource "aws_volume_attachment" "this_standard" {
-  device_name = "/dev/sdf"
-  volume_id   = aws_ebs_volume.standard.id
-  instance_id = module.ec2_public.id[0]
+  count = var.standard_create ? 1 : 0
+  device_name = var.standard_device_name
+  volume_id   = aws_ebs_volume.standard[0].id
+  instance_id = module.ec2_public_t.id[0]
 }
 
 ################################################################################
@@ -35,95 +37,97 @@ resource "aws_volume_attachment" "this_standard" {
 # i3.large (read: 1542 IOPS / write: 1542 IOPS)
 ################################################################################
 resource "aws_ebs_volume" "gp2" {
+  count = var.gp2_create ? 1 : 0
   availability_zone = "eu-central-1a"
-  size              = 16
+  size              = var.gp2_size
   type              = "gp2"
 
   tags = local.user_tag
 }
 
 resource "aws_volume_attachment" "this_gp2" {
-  device_name = "/dev/sdg"
-  volume_id   = aws_ebs_volume.gp2.id
-  instance_id = module.ec2_public.id[0]
+  count = var.gp2_create ? 1 : 0
+  device_name = var.gp2_device_name
+  volume_id   = aws_ebs_volume.gp2[0].id
+  instance_id = module.ec2_public_t.id[0]
 }
-
-/*
-resource "aws_volume_attachment" "this_gp2" {
-  device_name = "/dev/sdg"
-  volume_id   = aws_ebs_volume.gp2.id
-  instance_id = module.ec2_public_i.id[0]
-}
-*/
 
 ################################################################################
 # io1 EBS
 ################################################################################
 resource "aws_ebs_volume" "io1" {
+  count = var.io1_create ? 1 : 0
   availability_zone = "eu-central-1a"
-  size              = 32
+  size              = var.io1_size
   type              = "io1"
-  iops              = 1600 //Iops to volume size maximum ratio is 50
+  iops              = var.io1_iops //Iops to volume size maximum ratio is 50
 
   tags = local.user_tag
 }
 
 resource "aws_volume_attachment" "this_io1" {
-  device_name = "/dev/sdh"
-  volume_id   = aws_ebs_volume.io1.id
-  instance_id = module.ec2_public.id[0]
+  count = var.io1_create ? 1 : 0
+  device_name = var.io1_device_name
+  volume_id   = aws_ebs_volume.io1[0].id
+  instance_id = module.ec2_public_t.id[0]
 }
 
 ################################################################################
 # io2 EBS
 ################################################################################
 resource "aws_ebs_volume" "io2" {
+  count = var.io2_create ? 1 : 0
   availability_zone = "eu-central-1a"
-  size              = 128
+  size              = var.io2_size
   type              = "io2"
-  iops              = 6400 //Iops to volume size maximum ratio is 50
+  iops              = var.io2_iops //Iops to volume size maximum ratio is 50
 
   tags = local.user_tag
 }
 
 resource "aws_volume_attachment" "this_io2" {
-  device_name = "/dev/sdi"
-  volume_id   = aws_ebs_volume.io2.id
-  instance_id = module.ec2_public.id[0]
+  count = var.io2_create ? 1 : 0
+  device_name = var.io2_device_name
+  volume_id   = aws_ebs_volume.io2[0].id
+  instance_id = module.ec2_public_t.id[0]
 }
 
 ################################################################################
 # sc1 EBS (read: 20 IOPS / write: 21 IOPS)
 ################################################################################
 resource "aws_ebs_volume" "sc1" {
+  count = var.sc1_create ? 1 : 0
   availability_zone = "eu-central-1a"
-  size              = 500
+  size              = var.sc1_size
   type              = "sc1"
 
   tags = local.user_tag
 }
 
 resource "aws_volume_attachment" "this_sc1" {
-  device_name = "/dev/sdl"
-  volume_id   = aws_ebs_volume.sc1.id
-  instance_id = module.ec2_public.id[0]
+  count = var.sc1_create ? 1 : 0
+  device_name = var.sc1_device_name
+  volume_id   = aws_ebs_volume.sc1[0].id
+  instance_id = module.ec2_public_t.id[0]
 }
 
 ################################################################################
 # st1 EBS (read: 64 IOPS / write: 67 IOPS)
 ################################################################################
 resource "aws_ebs_volume" "st1" {
+  count = var.st1_create ? 1 : 0
   availability_zone = "eu-central-1a"
-  size              = 500
+  size              = var.st1_size
   type              = "st1"
 
   tags = local.user_tag
 }
 
 resource "aws_volume_attachment" "this_st1" {
-  device_name = "/dev/sdm"
-  volume_id   = aws_ebs_volume.st1.id
-  instance_id = module.ec2_public.id[0]
+  count = var.st1_create ? 1 : 0
+  device_name = var.st1_device_name
+  volume_id   = aws_ebs_volume.st1[0].id
+  instance_id = module.ec2_public_t.id[0]
 }
 
 
@@ -141,22 +145,9 @@ data "aws_subnet_ids" "all" {
 ################################################################################
 # EC2
 ################################################################################
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-  owners = ["099720109477"] # Canonical
-}
-
 resource "aws_key_pair" "this" {
-  key_name   = "${local.user_tag.Owner}${local.user_tag.Test}"
-  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCVPI+y9VK/2KhV0kNH1boKE3xTkVIo57fWX1qf8+AR4uu+IIr1sM4LLWcbhTR4WY8okfzv9LoCl/LWg30ODsbLuYX2heamZOuSg5CyFSJj6i2RgS2M2wppKLo13+tEqUm4c4E6dnVk2YHeDs7A5asL1IUGnqvcpey2+ZMTgCEa6nfqxitSl3wWSuMZpNUTXtnQh/3Yp1dMlHjdUuiUCHEKIPyHdz2mF/i6yEf4RPLFWVKpX+o1TpfnoVlFipiobcqiZ0SOOgJsbqWGrykrdnYbvOYtKBpNF3OSTZdBaxRHtH907ykre+9gqTPnQFqq3hncUNQuQvpiv9SlZyuCVmr5 andreabortolossi@Andreas-MBP.lan"
+  key_name   = "ebs-key"
+  public_key = var.public_key
 
   tags = local.user_tag
 }
@@ -165,11 +156,11 @@ resource "aws_key_pair" "this" {
 # Attached disk
 # t2.micro (read: 1541 IOPS / write: 1540 IOPS)
 ################################################################################
-module "ec2_public" {
+module "ec2_public_t" {
   source                      = "../../modules_AWS/terraform-aws-ec2-instance-master"
-  name                        = "public_server"
-  instance_count              = 1
-  ami                         = data.aws_ami.ubuntu.id
+  name                        = "public_server_t"
+  instance_count              = var.ec2_t_instance ? 1 : 0
+  ami                         = var.ec2_ami_id
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.this.key_name
   associate_public_ip_address = true
@@ -187,8 +178,8 @@ module "ec2_public" {
 module "ec2_public_i" {
   source                      = "../../modules_AWS/terraform-aws-ec2-instance-master"
   name                        = "public_server_i"
-  instance_count              = 1
-  ami                         = data.aws_ami.ubuntu.id
+  instance_count              = var.ec2_i_instance ? 1 : 0
+  ami                         = var.ec2_ami_id
   instance_type               = "i3.large"
   key_name                    = aws_key_pair.this.key_name
   associate_public_ip_address = true

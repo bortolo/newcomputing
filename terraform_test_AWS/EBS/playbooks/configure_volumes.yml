@@ -5,10 +5,11 @@
   vars:
     user: ubuntu
     mount_path: /mnt/data
-    volume: xvdg
+    volume: xvdf
+    action: mount # [mount,unmount]
 
     ############################################################################
-    # EBS volumes
+    # EBS volumes (it changes if you update your input variables)
     # xvdf - standard
     # xvdg - gp2
     # xvdh - io1
@@ -46,9 +47,11 @@
      src: "/dev/{{volume}}"
      fstype: ext4
      state: mounted
+    when: action == "mount"
 
-  # - name: Unmount volume {{volume}}
-  #   become: yes
-  #   mount:
-  #    path: "{{mount_path}}"
-  #    state: unmounted
+  - name: Unmount volume {{volume}}
+    become: yes
+    mount:
+     path: "{{mount_path}}"
+     state: unmounted
+    when: action == "unmount"
