@@ -2,7 +2,7 @@
 
 Deploy a VPC with a public and e private EC2. Test internet connectivity throuth the AWS internet gateway and through NAT gateway Vs NAT instance.
 
-![appview](./images/EBSarchitecture.png)
+![appview](./images/NATarchitecture.png)
 
 | Resource | Estimated cost (without VAT) | Link |
 |------|---------|---------|
