@@ -23,3 +23,9 @@ variable "ec2_ami_id" {
   type = string
   default = ""
  }
+
+variable "nat_instance_or_gateway" {
+  description = "True if you want to use NAT instancve, False if you want to use NAT gateway"
+  type = bool
+  default = true
+}

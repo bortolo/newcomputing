@@ -34,7 +34,7 @@ resource "aws_vpc" "main" {
 
 resource "aws_subnet" "public_subnet_a" {
   vpc_id     = aws_vpc.main.id
-  availability_zone = "eu-central-1a"
+  availability_zone = "${var.region}a"
   cidr_block = "10.0.0.0/24"
 
   tags = local.user_tag
@@ -42,7 +42,7 @@ resource "aws_subnet" "public_subnet_a" {
 
 resource "aws_subnet" "public_subnet_b" {
   vpc_id     = aws_vpc.main.id
-  availability_zone = "eu-central-1b"
+  availability_zone = "${var.region}b"
   cidr_block = "10.0.1.0/24"
 
   tags = local.user_tag
@@ -50,7 +50,7 @@ resource "aws_subnet" "public_subnet_b" {
 
 resource "aws_subnet" "private_subnet_a" {
   vpc_id     = aws_vpc.main.id
-  availability_zone = "eu-central-1a"
+  availability_zone = "${var.region}a"
   cidr_block = "10.0.16.0/20"
 
   tags = local.user_tag
@@ -58,7 +58,7 @@ resource "aws_subnet" "private_subnet_a" {
 
 resource "aws_subnet" "private_subnet_b" {
   vpc_id     = aws_vpc.main.id
-  availability_zone = "eu-central-1b"
+  availability_zone = "${var.region}b"
   cidr_block = "10.0.32.0/20"
 
   tags = local.user_tag
@@ -118,10 +118,18 @@ resource "aws_route_table_association" "private_b" {
   route_table_id = aws_route_table.private.id
 }
 
-resource "aws_route" "nat" {
+resource "aws_route" "nat_instance" {
+  count                     = var.nat_instance_or_gateway?1:0
   route_table_id            = aws_route_table.private.id
   destination_cidr_block    = "0.0.0.0/0"
-  instance_id               = module.ec2_NAT_a.id[0]
+  instance_id               = module.ec2_NAT_instance.id[0]
+}
+
+resource "aws_route" "nat_gateway" {
+  count                     = var.nat_instance_or_gateway?0:1
+  route_table_id            = aws_route_table.private.id
+  destination_cidr_block    = "0.0.0.0/0"
+  nat_gateway_id            = aws_nat_gateway.gw[0].id
 }
 
 ################################################################################
@@ -134,7 +142,7 @@ resource "aws_key_pair" "this" {
   tags = local.user_tag
 }
 
-module "ec2_public_a" {
+module "ec2_public" {
   source                      = "../../../modules_AWS/terraform-aws-ec2-instance-master"
   name                        = "public_server_a"
   instance_count              = 1
@@ -149,7 +157,7 @@ module "ec2_public_a" {
   tags = local.user_tag
 }
 
-module "ec2_private_a" {
+module "ec2_private" {
   source                      = "../../../modules_AWS/terraform-aws-ec2-instance-master"
   name                        = "private_server_a"
   instance_count              = 1
@@ -200,6 +208,7 @@ module "aws_security_group_server" {
 
 ################################################################################
 # NAT instances
+################################################################################
 # Allows instances in the private subnets to connect to the internet
 # Must be launched in a public subnet
 # Must disable EC2 flag source/destination check
@@ -207,18 +216,20 @@ module "aws_security_group_server" {
 # Route tabel must be configured to route traffic from private subnets to NAT instance
 
 resource "aws_eip" "nat_ip" {
+  count                     = var.nat_instance_or_gateway?1:0
   vpc      = true
 }
 
 resource "aws_eip_association" "eip_assoc" {
-  instance_id   = module.ec2_NAT_a.id[0]
-  allocation_id = aws_eip.nat_ip.id
+  count                     = var.nat_instance_or_gateway?1:0
+  instance_id   = module.ec2_NAT_instance.id[0]
+  allocation_id = aws_eip.nat_ip[0].id
 }
 
-module "ec2_NAT_a" {
+module "ec2_NAT_instance" {
   source                      = "../../../modules_AWS/terraform-aws-ec2-instance-master"
   name                        = "NAT_server_a"
-  instance_count              = 1
+  instance_count              = var.nat_instance_or_gateway?1:0
   ami                         = var.ec2_NAT_ami_id
   instance_type               = "t2.micro"
   key_name                    = aws_key_pair.this.key_name
@@ -275,6 +286,38 @@ module "aws_security_group_server_NAT" {
       cidr_blocks = "0.0.0.0/0"
     },
   ]
+
+  tags = local.user_tag
+}
+
+################################################################################
+# NAT gateway
+################################################################################
+# AWS managed NAT, higher bandwidth, better availability, no admin
+# Pay by the hour for usage (es. Frankfurt 0.052$/h) and bandwidth (es. Frankfurt 0.052$/GB)
+# NAT is created in a specific AZ, uses an EIP
+# cannot be used in a instance in that subnet
+# Requires IGW 
+# 5 Gbps of bandwidth with automatic scaling up to 45 Gbps
+# No security group to manage
+# It is resilient in a single AZ (if you want cross AZ fault-tolerance you have to deploy a second NAT gateway)
+
+resource "aws_eip" "nat_gw_ip" {
+  count                     = var.nat_instance_or_gateway?0:1
+  vpc      = true
+}
+
+resource "aws_nat_gateway" "gw" {
+  count                     = var.nat_instance_or_gateway?0:1
+  allocation_id = aws_eip.nat_gw_ip[0].id
+  subnet_id     = aws_subnet.public_subnet_a.id
+
+  # depends_on: terraform meta argument
+  # Explicitly specifying a dependency is only necessary when a resource or module 
+  # relies on some other resource's behavior but doesn't access any of that resource's 
+  # data in its arguments
+  # Note: deploy a nat gateway without an internet gateway is usuless
+  depends_on = [aws_internet_gateway.gw]
 
   tags = local.user_tag
 }
