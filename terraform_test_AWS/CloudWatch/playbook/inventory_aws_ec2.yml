@@ -1,0 +1,12 @@
+plugin: aws_ec2
+regions:
+  - "eu-central-1"
+keyed_groups:
+  - key: tags.Name
+  - key: tags.Owner
+  - key: tags.Test
+filters:
+  instance-state-name : running
+  tag:Test : Cloudwatch 
+compose:
+  ansible_host: public_ip_address

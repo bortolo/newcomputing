@@ -165,7 +165,8 @@ resource "aws_key_pair" "this" {
 # IAM assumable role with custom policies
 ################################################################################
 module "iam_assumable_role_custom" {
-  source            = "../../modules_AWS/terraform-aws-iam-master/modules/iam-assumable-role"
+  //source            = "../../modules_AWS/terraform-aws-iam-master/modules/iam-assumable-role"
+  source            = "github.com/terraform-aws-modules/terraform-aws-iam/modules/iam-assumable-role"
   trusted_role_arns = []
   trusted_role_services = [
     "ec2.amazonaws.com"
@@ -219,7 +220,7 @@ module "ec2" {
   key_name                    = var.key_pair_name
   associate_public_ip_address = var.ec2_public_ip
   monitoring                  = var.ec2_detailed_monitoring
-  vpc_security_group_ids      = [module.aws_security_group.this_security_group_id]
+  vpc_security_group_ids      = [module.aws_security_group.security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all.ids)[0]
   iam_instance_profile        = var.iam_cloudwatch_logs
   //user_data                   = var.ec2_user_data
@@ -228,7 +229,8 @@ module "ec2" {
 }
 
 module "aws_security_group" {
-  source      = "../../modules_AWS/terraform-aws-security-group-master"
+  //source      = "../../modules_AWS/terraform-aws-security-group-master"
+  source      = "github.com/terraform-aws-modules/terraform-aws-security-group"
   name        = "FE_security_group"
   description = "Security group for front-end servers"
   vpc_id      = data.aws_vpc.default.id
@@ -238,6 +240,13 @@ module "aws_security_group" {
       to_port     = 22
       protocol    = "tcp"
       description = "SSH port"
+      cidr_blocks = "0.0.0.0/0"
+    },
+    {
+      from_port   = 8
+      to_port     = 0
+      protocol    = "icmp"
+      description = "ICMP"
       cidr_blocks = "0.0.0.0/0"
     },
   ]
