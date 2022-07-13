@@ -1,0 +1,7 @@
+#!/bin/bash
+yum update -y
+yum install -y aws-kinesis-agent
+wget http://media.sundog-soft.com/AWSBigData/LogGenerator.zip
+unzip LogGenerator.zip
+chmod a+x LogGenerator.py
+mkdir /var/log/cadabra
