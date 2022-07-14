@@ -1,6 +1,6 @@
 #!/bin/bash
 yum update -y
-yum install -y aws-kinesis-agent
+yum install aws-kinesis-agent -y
 wget http://media.sundog-soft.com/AWSBigData/LogGenerator.zip
 unzip LogGenerator.zip
 chmod a+x LogGenerator.py

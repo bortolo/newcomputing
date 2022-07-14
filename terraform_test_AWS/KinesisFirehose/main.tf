@@ -9,7 +9,7 @@ locals {
     Test  = "KindesisFirehose"
   }
 }
-/*
+
 resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
   name        = var.deliverystream_name
   destination = "extended_s3"
@@ -31,7 +31,7 @@ resource "aws_iam_role" "firehose_role" {
   name = "firehose_test_role"
   assume_role_policy = file("./resources/Policy_Firehose.json")
 }
-*/
+
 
 ################################################################################
 # EC2
@@ -63,6 +63,7 @@ module "ec2" {
   vpc_security_group_ids      = [module.aws_security_group.security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all.ids)[0]
   user_data                   = file("./resources/EC2_userdata")
+  iam_instance_profile        = module.iam_assumable_role_custom.iam_instance_profile_name
 
   tags = local.user_tag
 }
@@ -90,5 +91,23 @@ module "aws_security_group" {
       cidr_blocks = "0.0.0.0/0"
     },
   ]
+  tags = local.user_tag
+}
+
+module "iam_assumable_role_custom" {
+  source            = "github.com/terraform-aws-modules/terraform-aws-iam/modules/iam-assumable-role"
+  trusted_role_arns = []
+  trusted_role_services = [
+    "ec2.amazonaws.com"
+  ]
+  create_role             = true
+  create_instance_profile = true
+  role_name               = "ec2-admin-firehose"
+  role_requires_mfa       = false
+  custom_role_policy_arns = [
+    //"arn:aws:iam::aws:policy/AmazonKinesisFirehoseFullAccess",
+    "arn:aws:iam::aws:policy/AdministratorAccess",
+  ]
+
   tags = local.user_tag
 }
