@@ -8,13 +8,46 @@ locals {
     Owner = var.awsusername
     Test  = "KindesisFirehose"
   }
+
+  cloud_config_config = <<-END
+    #cloud-config
+    ${jsonencode({
+      write_files = [
+        {
+          path        = "/etc/aws-kinesis/agent.json"
+          permissions = "0644"
+          owner       = "root:root"
+          encoding    = "b64"
+          content     = filebase64("./resources/agent.json")
+        },
+      ]
+    })}
+  END
+}
+
+data "cloudinit_config" "example" {
+  gzip          = false
+  base64_encode = false
+
+  part {
+    content_type = "text/cloud-config"
+    filename     = "cloud-config.yaml"
+    content      = local.cloud_config_config
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    filename     = "example.sh"
+    content      = file("./resources/EC2_userdata")
+  }
 }
 
 resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
   name        = var.deliverystream_name
   destination = "extended_s3"
     extended_s3_configuration {
-    role_arn        = aws_iam_role.firehose_role.arn
+    role_arn        = module.iam_assumable_role_custom_firehose.iam_instance_profile_arn
+    //aws_iam_role.firehose_role.arn
     bucket_arn      = aws_s3_bucket.bucket.arn
     buffer_size     = var.buffer_size
     buffer_interval = var.buffer_interval
@@ -62,7 +95,8 @@ module "ec2" {
   monitoring                  = false
   vpc_security_group_ids      = [module.aws_security_group.security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all.ids)[0]
-  user_data                   = file("./resources/EC2_userdata")
+  //user_data                   = file("./resources/EC2_userdata")
+  user_data                   = data.cloudinit_config.example.rendered
   iam_instance_profile        = module.iam_assumable_role_custom.iam_instance_profile_name
 
   tags = local.user_tag
@@ -107,6 +141,23 @@ module "iam_assumable_role_custom" {
   custom_role_policy_arns = [
     //"arn:aws:iam::aws:policy/AmazonKinesisFirehoseFullAccess",
     "arn:aws:iam::aws:policy/AdministratorAccess",
+  ]
+
+  tags = local.user_tag
+}
+
+module "iam_assumable_role_custom_firehose" {
+  source            = "github.com/terraform-aws-modules/terraform-aws-iam/modules/iam-assumable-role"
+  trusted_role_arns = []
+  trusted_role_services = [
+    "firehose.amazonaws.com"
+  ]
+  create_role             = true
+  create_instance_profile = false
+  role_name               = "firehose-access-S3"
+  role_requires_mfa       = false
+  custom_role_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
   ]
 
   tags = local.user_tag

@@ -5,3 +5,5 @@ wget http://media.sundog-soft.com/AWSBigData/LogGenerator.zip
 unzip LogGenerator.zip
 chmod a+x LogGenerator.py
 mkdir /var/log/cadabra
+service aws-kinesis-agent start
+chkconfig aws-kinesis-agent on
