@@ -25,29 +25,16 @@ locals {
   END
 }
 
-data "cloudinit_config" "example" {
-  gzip          = false
-  base64_encode = false
-
-  part {
-    content_type = "text/cloud-config"
-    filename     = "cloud-config.yaml"
-    content      = local.cloud_config_config
-  }
-
-  part {
-    content_type = "text/x-shellscript"
-    filename     = "example.sh"
-    content      = file("./resources/EC2_userdata")
-  }
-}
+################################################################################
+# FIREHOSE
+################################################################################
 
 resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
   name        = var.deliverystream_name
   destination = "extended_s3"
     extended_s3_configuration {
-    role_arn        = module.iam_assumable_role_custom_firehose.iam_instance_profile_arn
-    //aws_iam_role.firehose_role.arn
+    role_arn        = module.iam_assumable_role_custom_firehose.iam_role_arn
+    //role_arn      = aws_iam_role.firehose_role.arn
     bucket_arn      = aws_s3_bucket.bucket.arn
     buffer_size     = var.buffer_size
     buffer_interval = var.buffer_interval
@@ -55,16 +42,36 @@ resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
   tags    = local.user_tag
 }
 
-resource "aws_s3_bucket" "bucket" {
-  bucket = var.bucket_name
-  tags   = local.user_tag
-}
-
 resource "aws_iam_role" "firehose_role" {
   name = "firehose_test_role"
   assume_role_policy = file("./resources/Policy_Firehose.json")
 }
 
+module "iam_assumable_role_custom_firehose" {
+  source            = "github.com/terraform-aws-modules/terraform-aws-iam/modules/iam-assumable-role"
+  trusted_role_arns = []
+  trusted_role_services = [
+    "firehose.amazonaws.com"
+  ]
+  create_role             = true
+  create_instance_profile = false
+  role_name               = "firehose-access-S3"
+  role_requires_mfa       = false
+  custom_role_policy_arns = [
+    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+  ]
+
+  tags = local.user_tag
+}
+
+################################################################################
+# S3
+################################################################################
+
+resource "aws_s3_bucket" "bucket" {
+  bucket = var.bucket_name
+  tags   = local.user_tag
+}
 
 ################################################################################
 # EC2
@@ -146,19 +153,19 @@ module "iam_assumable_role_custom" {
   tags = local.user_tag
 }
 
-module "iam_assumable_role_custom_firehose" {
-  source            = "github.com/terraform-aws-modules/terraform-aws-iam/modules/iam-assumable-role"
-  trusted_role_arns = []
-  trusted_role_services = [
-    "firehose.amazonaws.com"
-  ]
-  create_role             = true
-  create_instance_profile = false
-  role_name               = "firehose-access-S3"
-  role_requires_mfa       = false
-  custom_role_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-  ]
+data "cloudinit_config" "example" {
+  gzip          = false
+  base64_encode = false
 
-  tags = local.user_tag
+  part {
+    content_type = "text/cloud-config"
+    filename     = "cloud-config.yaml"
+    content      = local.cloud_config_config
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    filename     = "example.sh"
+    content      = file("./resources/EC2_userdata")
+  }
 }
