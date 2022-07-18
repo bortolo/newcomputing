@@ -34,17 +34,11 @@ resource "aws_kinesis_firehose_delivery_stream" "extended_s3_stream" {
   destination = "extended_s3"
     extended_s3_configuration {
     role_arn        = module.iam_assumable_role_custom_firehose.iam_role_arn
-    //role_arn      = aws_iam_role.firehose_role.arn
     bucket_arn      = aws_s3_bucket.bucket.arn
     buffer_size     = var.buffer_size
     buffer_interval = var.buffer_interval
   }
   tags    = local.user_tag
-}
-
-resource "aws_iam_role" "firehose_role" {
-  name = "firehose_test_role"
-  assume_role_policy = file("./resources/Policy_Firehose.json")
 }
 
 module "iam_assumable_role_custom_firehose" {
@@ -60,7 +54,6 @@ module "iam_assumable_role_custom_firehose" {
   custom_role_policy_arns = [
     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
   ]
-
   tags = local.user_tag
 }
 
@@ -92,9 +85,14 @@ resource "aws_key_pair" "this" {
 }
 
 module "ec2" {
+  // TO DO: see how to use the new version of the module EC2
+  //source                      = "github.com/terraform-aws-modules/terraform-aws-ec2-instance"
   source                      = "../../modules_AWS/terraform-aws-ec2-instance-master"
   name                        = var.ec2_name
+  
+  //for_each = toset(["one"])
   instance_count              = 1
+  
   ami                         = "ami-0bd39c806c2335b95" //AWS Linux AMI
   instance_type               = "t2.micro"
   key_name                    = var.key_pair_name
@@ -102,7 +100,6 @@ module "ec2" {
   monitoring                  = false
   vpc_security_group_ids      = [module.aws_security_group.security_group_id]
   subnet_id                   = tolist(data.aws_subnet_ids.all.ids)[0]
-  //user_data                   = file("./resources/EC2_userdata")
   user_data                   = data.cloudinit_config.example.rendered
   iam_instance_profile        = module.iam_assumable_role_custom.iam_instance_profile_name
 
