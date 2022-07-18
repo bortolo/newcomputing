@@ -6,7 +6,7 @@ provider "aws" {
 locals {
   user_tag = {
     Owner = var.awsusername
-    Test  = "KindesisFirehose"
+    Test  = "KinesisExperiment-02"
   }
 
   cloud_config_config = <<-END

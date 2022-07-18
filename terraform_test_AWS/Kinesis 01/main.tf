@@ -6,7 +6,7 @@ provider "aws" {
 locals {
   user_tag = {
     Owner = var.awsusername
-    Test  = "KindesisDataStream"
+    Test  = "KinesisExperiment-01"
   }
 }
 
