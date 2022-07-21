@@ -10,7 +10,7 @@ locals {
     Test  = "KinesisExperiment-03"
   }
 }
-
+/*
 ################################################################################
 # KINESIS FIREHOSE
 ################################################################################
@@ -51,7 +51,7 @@ resource "aws_s3_bucket" "bucket" {
   bucket = var.bucket_name
   tags   = local.user_tag
 }
-
+*/
 ################################################################################
 # EC2
 ################################################################################
@@ -152,6 +152,13 @@ data "cloudinit_config" "example" {
             encoding    = "b64"
             content     = filebase64("./resources/agent.json")
           },
+                    {
+            path        = "/home/ec2-user/.aws/config"
+            permissions = "0644"
+            owner       = "root:root"
+            encoding    = "b64"
+            content     = filebase64("./resources/config")
+          },
         ]
       })}
     END
@@ -168,7 +175,6 @@ data "cloudinit_config" "example" {
 # KINESI DATA STREAM
 ################################################################################
 
-
 resource "aws_kinesis_stream" "test_stream" {
   name             = var.stream_name
   shard_count      = var.number_of_shards
@@ -181,6 +187,31 @@ resource "aws_kinesis_stream" "test_stream" {
 
   stream_mode_details {
     stream_mode = var.capacity_mode
+  }
+
+  tags = local.user_tag
+}
+
+################################################################################
+# KINESI DATA STREAM
+################################################################################
+
+resource "aws_dynamodb_table" "basic-dynamodb-table" {
+  name           = "CadabraOrders"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 1
+  write_capacity = 1
+  hash_key       = "CustomerID"
+  range_key      = "OrderID"
+
+   attribute {
+    name = "CustomerID"
+    type = "N"
+  }
+
+  attribute {
+    name = "OrderID"
+    type = "S"
   }
 
   tags = local.user_tag

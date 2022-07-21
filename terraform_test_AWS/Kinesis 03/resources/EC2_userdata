@@ -7,3 +7,6 @@ chmod a+x LogGenerator.py
 mkdir /var/log/cadabra
 service aws-kinesis-agent start
 chkconfig aws-kinesis-agent on
+pip3 install boto3
+wget http://media.sundog-soft.com/AWSBigData/Consumer.py
+chmod a+x Consumer.py
