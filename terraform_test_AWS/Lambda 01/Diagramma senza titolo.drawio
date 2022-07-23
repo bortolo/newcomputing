@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-07-23T14:47:56.568Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15" etag="pX0iN85gAdMwRyU3UHpI" version="20.2.0" type="github">
+<mxfile host="app.diagrams.net" modified="2022-07-23T14:54:17.247Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15" etag="KKESBf6g_xUOGIq1bDzW" version="20.2.0" type="github">
   <diagram id="YmTzKljxziRFt7g2Y5DG" name="Pagina-1">
     <mxGraphModel dx="946" dy="550" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -15,6 +15,9 @@
         </mxCell>
         <mxCell id="mgpNyA7ex-40HXFU7GXZ-6" value="Public subnet" style="points=[[0,0],[0.25,0],[0.5,0],[0.75,0],[1,0],[1,0.25],[1,0.5],[1,0.75],[1,1],[0.75,1],[0.5,1],[0.25,1],[0,1],[0,0.75],[0,0.5],[0,0.25]];outlineConnect=0;gradientColor=none;html=1;whiteSpace=wrap;fontSize=12;fontStyle=0;container=1;pointerEvents=0;collapsible=0;recursiveResize=0;shape=mxgraph.aws4.group;grIcon=mxgraph.aws4.group_security_group;grStroke=0;strokeColor=#248814;fillColor=#E9F3E6;verticalAlign=top;align=left;spacingLeft=30;fontColor=#248814;dashed=0;" vertex="1" parent="1">
           <mxGeometry x="55" y="260" width="180" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="mgpNyA7ex-40HXFU7GXZ-34" value="ingress: 22&lt;br&gt;egress: ALL" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="mgpNyA7ex-40HXFU7GXZ-6">
+          <mxGeometry x="52.5" y="125" width="75" height="20" as="geometry" />
         </mxCell>
         <mxCell id="mgpNyA7ex-40HXFU7GXZ-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="mgpNyA7ex-40HXFU7GXZ-1" target="mgpNyA7ex-40HXFU7GXZ-2">
           <mxGeometry relative="1" as="geometry" />
@@ -50,7 +53,7 @@
           <mxGeometry x="493" y="280" width="100" height="25" as="geometry" />
         </mxCell>
         <mxCell id="mgpNyA7ex-40HXFU7GXZ-19" value="Producer with &lt;br&gt;AWS-kinesis-agent&lt;br&gt;./LogGenerator.py" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="186.5" y="326" width="135" height="45" as="geometry" />
+          <mxGeometry x="200.5" y="326" width="135" height="45" as="geometry" />
         </mxCell>
         <mxCell id="mgpNyA7ex-40HXFU7GXZ-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.25;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="mgpNyA7ex-40HXFU7GXZ-3" target="mgpNyA7ex-40HXFU7GXZ-2">
           <mxGeometry relative="1" as="geometry">
@@ -84,6 +87,9 @@
         </mxCell>
         <mxCell id="mgpNyA7ex-40HXFU7GXZ-5" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.internet_gateway;fillColor=#F58534;gradientColor=none;" vertex="1" parent="1">
           <mxGeometry x="115" y="210" width="38.33" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="mgpNyA7ex-40HXFU7GXZ-33" value="" style="rounded=1;arcSize=10;dashed=1;strokeColor=#ff0000;fillColor=none;gradientColor=none;dashPattern=8 4;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="100" y="290" width="90" height="90" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
