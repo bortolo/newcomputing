@@ -127,8 +127,7 @@ module "iam_assumable_role_custom" {
   role_name               = "ec2-admin-firehose"
   role_requires_mfa       = false
   custom_role_policy_arns = [
-    //"arn:aws:iam::aws:policy/AmazonKinesisFirehoseFullAccess",
-    "arn:aws:iam::aws:policy/AdministratorAccess",
+    "arn:aws:iam::aws:policy/AmazonKinesisFullAccess",
   ]
 
   tags = local.user_tag
