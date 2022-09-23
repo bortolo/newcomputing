@@ -70,6 +70,10 @@ resource "aws_subnet" "a-private" {
 
 resource "aws_route_table" "a-private" {
   vpc_id = aws_vpc.vpc-a.id
+      route {
+    cidr_block = "10.0.0.0/8"
+    transit_gateway_id  = aws_ec2_transit_gateway.example.id
+  }
     tags = {
     Name = "a-private-rt"
   }
@@ -104,6 +108,10 @@ resource "aws_subnet" "b-private" {
 
 resource "aws_route_table" "b-private" {
   vpc_id = aws_vpc.vpc-b.id
+        route {
+    cidr_block = "10.0.0.0/8"
+    transit_gateway_id  = aws_ec2_transit_gateway.example.id
+  }
     tags = {
     Name = "b-private-rt"
   }
@@ -138,6 +146,10 @@ resource "aws_subnet" "c-private" {
 
 resource "aws_route_table" "c-private" {
   vpc_id = aws_vpc.vpc-c.id
+        route {
+    cidr_block = "10.0.0.0/8"
+    transit_gateway_id  = aws_ec2_transit_gateway.example.id
+  }
   tags = {
     Name = "c-private-rt"
   }
@@ -169,7 +181,7 @@ resource "aws_instance" "jumphost" {
   associate_public_ip_address = true
   //user_data                   = data.cloudinit_config.example.rendered
   subnet_id                   = aws_subnet.a-public.id
-  security_groups             = [aws_security_group.jumphost.id]
+  vpc_security_group_ids             = [aws_security_group.jumphost.id]
   tags = {
     Name = "Jumphost"
   }
@@ -209,7 +221,7 @@ resource "aws_instance" "vm-a" {
   instance_type               = "t3.micro"
   key_name                    = var.key_pair_name
   subnet_id                   = aws_subnet.a-private.id
-  security_groups             = [aws_security_group.vm-a.id]
+  vpc_security_group_ids             = [aws_security_group.vm-a.id]
   tags = {
     Name = "vm-a"
   }
@@ -241,6 +253,16 @@ resource "aws_security_group_rule" "icmp-vm-a" {
   security_group_id = aws_security_group.vm-a.id
 }
 
+resource "aws_security_group_rule" "all-vma" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  ipv6_cidr_blocks  = ["::/0"]
+  security_group_id = aws_security_group.vm-a.id
+}
+
 # VM private B
 
 resource "aws_instance" "vm-b" {
@@ -248,7 +270,7 @@ resource "aws_instance" "vm-b" {
   instance_type               = "t3.micro"
   key_name                    = var.key_pair_name
   subnet_id                   = aws_subnet.b-private.id
-  security_groups             = [aws_security_group.vm-b.id]
+  vpc_security_group_ids             = [aws_security_group.vm-b.id]
   tags = {
     Name = "vm-b"
   }
@@ -286,7 +308,7 @@ resource "aws_instance" "vm-c" {
   instance_type               = "t3.micro"
   key_name                    = var.key_pair_name
   subnet_id                   = aws_subnet.c-private.id
-  security_groups             = [aws_security_group.vm-c.id]
+  vpc_security_group_ids             = [aws_security_group.vm-c.id]
   tags = {
     Name = "vm-c"
   }
@@ -318,27 +340,57 @@ resource "aws_security_group_rule" "icmp-vm-c" {
   security_group_id = aws_security_group.vm-c.id
 }
 
-/*
-data "cloudinit_config" "example" {
-  gzip          = false
-  base64_encode = false
+################################################################################
+# Transit gateway
+################################################################################
 
-  part {
-    content_type = "text/cloud-config"
-    filename     = "cloud-config.yaml"
-    content      = <<-END
-      #cloud-config
-      ${jsonencode({
-        write_files = [
-                    {
-            path        = "/home/ec2-user/.ssh/id_rsa.pub"
-            permissions = "0644"
-            owner       = "root:root"
-            encoding    = "b64"
-            content     = filebase64("./resources/id_rsa.pub")
-          },
-        ]
-      })}
-    END
+resource "aws_ec2_transit_gateway" "example" {
+  description = "example"
+}
+
+resource "aws_ec2_transit_gateway_route_table" "example" {
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+}
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "vpc-a" {
+  subnet_ids         = [aws_subnet.a-private.id]
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+  vpc_id             = aws_vpc.vpc-a.id
+      tags = {
+    Name = "attachment-a"
   }
+}
+/*
+resource "aws_ec2_transit_gateway_route_table_association" "vpc-a" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-a.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.example.id
 }*/
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "vpc-b" {
+  subnet_ids         = [aws_subnet.b-private.id]
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+  vpc_id             = aws_vpc.vpc-b.id
+      tags = {
+    Name = "attachment-b"
+  }
+}
+/*
+resource "aws_ec2_transit_gateway_route_table_association" "vpc-b" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-b.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.example.id
+}*/
+
+resource "aws_ec2_transit_gateway_vpc_attachment" "vpc-c" {
+  subnet_ids         = [aws_subnet.c-private.id]
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+  vpc_id             = aws_vpc.vpc-c.id
+      tags = {
+    Name = "attachment-c"
+  }
+}
+/*
+resource "aws_ec2_transit_gateway_route_table_association" "vpc-c" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-c.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.example.id
+}
+*/
