@@ -22,7 +22,6 @@ resource "aws_vpc" "vpc-a" {
   tags = {
     Name = "VPC-A"
   }
-
 }
 
 resource "aws_internet_gateway" "gw-a" {
@@ -179,9 +178,8 @@ resource "aws_instance" "jumphost" {
   instance_type               = "t3.micro"
   key_name                    = var.key_pair_name
   associate_public_ip_address = true
-  //user_data                   = data.cloudinit_config.example.rendered
   subnet_id                   = aws_subnet.a-public.id
-  vpc_security_group_ids             = [aws_security_group.jumphost.id]
+  vpc_security_group_ids      = [aws_security_group.jumphost.id]
   tags = {
     Name = "Jumphost"
   }
@@ -221,7 +219,7 @@ resource "aws_instance" "vm-a" {
   instance_type               = "t3.micro"
   key_name                    = var.key_pair_name
   subnet_id                   = aws_subnet.a-private.id
-  vpc_security_group_ids             = [aws_security_group.vm-a.id]
+  vpc_security_group_ids      = [aws_security_group.vm-a.id]
   tags = {
     Name = "vm-a"
   }
@@ -270,7 +268,7 @@ resource "aws_instance" "vm-b" {
   instance_type               = "t3.micro"
   key_name                    = var.key_pair_name
   subnet_id                   = aws_subnet.b-private.id
-  vpc_security_group_ids             = [aws_security_group.vm-b.id]
+  vpc_security_group_ids      = [aws_security_group.vm-b.id]
   tags = {
     Name = "vm-b"
   }
@@ -308,7 +306,7 @@ resource "aws_instance" "vm-c" {
   instance_type               = "t3.micro"
   key_name                    = var.key_pair_name
   subnet_id                   = aws_subnet.c-private.id
-  vpc_security_group_ids             = [aws_security_group.vm-c.id]
+  vpc_security_group_ids      = [aws_security_group.vm-c.id]
   tags = {
     Name = "vm-c"
   }
@@ -346,10 +344,16 @@ resource "aws_security_group_rule" "icmp-vm-c" {
 
 resource "aws_ec2_transit_gateway" "example" {
   description = "example"
+        tags = {
+    Name = "tgway-VPC-A-B-C"
+  }
 }
 
 resource "aws_ec2_transit_gateway_route_table" "example" {
   transit_gateway_id = aws_ec2_transit_gateway.example.id
+          tags = {
+    Name = "tgway-route-VPC-A-B-C"
+  }
 }
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "vpc-a" {
