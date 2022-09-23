@@ -11,8 +11,143 @@ locals {
   }
 }
 
+################################################################################
+# VPC-A
+################################################################################
 
+resource "aws_vpc" "vpc-a" {
+  cidr_block       = "10.0.0.0/16"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  tags = {
+    Name = "VPC-A"
+  }
 
+}
+
+resource "aws_internet_gateway" "gw-a" {
+  vpc_id = aws_vpc.vpc-a.id
+  tags = {
+    Name = "a-igw"
+  }
+}
+
+# Public subent of VPC-A
+
+resource "aws_subnet" "a-public" {
+  vpc_id     = aws_vpc.vpc-a.id
+  cidr_block = "10.0.0.0/24"
+  tags = {
+    Name = "a-public-subnet"
+  }
+}
+
+resource "aws_route_table" "a-public" {
+  vpc_id = aws_vpc.vpc-a.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw-a.id
+  }
+    tags = {
+    Name = "a-public-rt"
+  }
+}
+
+resource "aws_route_table_association" "a-public" {
+  subnet_id      = aws_subnet.a-public.id
+  route_table_id = aws_route_table.a-public.id
+}
+
+# Private subent of VPC-A
+
+resource "aws_subnet" "a-private" {
+  vpc_id     = aws_vpc.vpc-a.id
+  cidr_block = "10.0.1.0/24"
+    tags = {
+    Name = "a-private-subnet"
+  }
+}
+
+resource "aws_route_table" "a-private" {
+  vpc_id = aws_vpc.vpc-a.id
+    tags = {
+    Name = "a-private-rt"
+  }
+}
+
+resource "aws_route_table_association" "a-private" {
+  subnet_id      = aws_subnet.a-private.id
+  route_table_id = aws_route_table.a-private.id
+}
+
+################################################################################
+# VPC-B
+################################################################################
+
+resource "aws_vpc" "vpc-b" {
+  cidr_block       = "10.1.0.0/16"
+  instance_tenancy = "default"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+    tags = {
+    Name = "VPC-B"
+  }
+}
+
+resource "aws_subnet" "b-private" {
+  vpc_id     = aws_vpc.vpc-b.id
+  cidr_block = "10.1.0.0/24"
+    tags = {
+    Name = "b-private-subnet"
+  }
+}
+
+resource "aws_route_table" "b-private" {
+  vpc_id = aws_vpc.vpc-b.id
+    tags = {
+    Name = "b-private-rt"
+  }
+}
+
+resource "aws_route_table_association" "b-private" {
+  subnet_id      = aws_subnet.b-private.id
+  route_table_id = aws_route_table.b-private.id
+}
+
+################################################################################
+# VPC-C
+################################################################################
+
+resource "aws_vpc" "vpc-c" {
+  cidr_block       = "10.2.0.0/16"
+  instance_tenancy = "default"
+  enable_dns_support = true
+  enable_dns_hostnames = true
+  tags = {
+    Name = "VPC-C"
+  }
+}
+
+resource "aws_subnet" "c-private" {
+  vpc_id     = aws_vpc.vpc-c.id
+  cidr_block = "10.2.0.0/24"
+    tags = {
+    Name = "c-private-subnet"
+  }
+}
+
+resource "aws_route_table" "c-private" {
+  vpc_id = aws_vpc.vpc-c.id
+  tags = {
+    Name = "c-private-rt"
+  }
+}
+
+resource "aws_route_table_association" "c-private" {
+  subnet_id      = aws_subnet.c-private.id
+  route_table_id = aws_route_table.c-private.id
+}
+/*
 ################################################################################
 # EC2
 ################################################################################
@@ -214,3 +349,4 @@ resource "aws_lambda_event_source_mapping" "example" {
   function_name     = aws_lambda_function.test_lambda.arn
   starting_position = "LATEST"
 }
+*/
