@@ -175,22 +175,72 @@ resource "aws_instance" "jumphost" {
 }
 
 resource "aws_security_group" "jumphost" {
-  description = "Allow SSH traffic"
   vpc_id      = aws_vpc.vpc-a.id
-  ingress {
-    description      = "TLS from VPC"
-    from_port        = 22
-    to_port          = 22
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
-  }
   tags = {
     Name = "jumphost"
   }
 }
 
+resource "aws_security_group_rule" "ssh-jumphost" {
+  type              = "ingress"
+  from_port        = 22
+  to_port          = 22
+  protocol         = "tcp"
+  cidr_blocks      = ["0.0.0.0/0"]
+  ipv6_cidr_blocks = ["::/0"]
+  security_group_id = aws_security_group.jumphost.id
+}
+
+resource "aws_security_group_rule" "all-jumphost" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  ipv6_cidr_blocks  = ["::/0"]
+  security_group_id = aws_security_group.jumphost.id
+}
+
 # VM private A
+
+resource "aws_instance" "vm-a" {
+  ami                         = "ami-0bd39c806c2335b95"
+  instance_type               = "t3.micro"
+  key_name                    = var.key_pair_name
+  subnet_id                   = aws_subnet.a-private.id
+  security_groups             = [aws_security_group.vm-a.id]
+  tags = {
+    Name = "vm-a"
+  }
+}
+
+resource "aws_security_group" "vm-a" {
+  vpc_id      = aws_vpc.vpc-a.id
+  tags = {
+    Name = "vm-a"
+  }
+}
+
+resource "aws_security_group_rule" "ssh-vm-a" {
+  type              = "ingress"
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  ipv6_cidr_blocks  = ["::/0"]
+  security_group_id = aws_security_group.vm-a.id
+}
+
+resource "aws_security_group_rule" "icmp-vm-a" {
+  type              = "ingress"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.vm-a.id
+}
+
+
 
 # VM private B
 
