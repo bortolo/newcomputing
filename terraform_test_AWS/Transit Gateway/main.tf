@@ -147,11 +147,57 @@ resource "aws_route_table_association" "c-private" {
   subnet_id      = aws_subnet.c-private.id
   route_table_id = aws_route_table.c-private.id
 }
-/*
+
 ################################################################################
 # EC2
 ################################################################################
 
+resource "aws_key_pair" "this" {
+  key_name   = var.key_pair_name
+  public_key = var.public_key
+  tags = {
+    Name = "tgway-key"
+  }
+}
+
+# Jumphost
+
+resource "aws_instance" "jumphost" {
+  ami                         = "ami-0bd39c806c2335b95"
+  instance_type               = "t3.micro"
+  key_name                    = var.key_pair_name
+  associate_public_ip_address = true
+  subnet_id                   = aws_subnet.a-public.id
+  security_groups             = [aws_security_group.jumphost.id]
+  tags = {
+    Name = "Jumphost"
+  }
+}
+
+resource "aws_security_group" "jumphost" {
+  description = "Allow SSH traffic"
+  vpc_id      = aws_vpc.vpc-a.id
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 22
+    to_port          = 22
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  tags = {
+    Name = "jumphost"
+  }
+}
+
+# VM private A
+
+# VM private B
+
+# VM private C
+
+
+/*
 data "aws_vpc" "default" {
   default = true
 }
@@ -227,126 +273,5 @@ module "iam_assumable_role_custom" {
   ]
 
   tags = local.user_tag
-}
-
-data "cloudinit_config" "example" {
-  gzip          = false
-  base64_encode = false
-
-  part {
-    content_type = "text/cloud-config"
-    filename     = "cloud-config.yaml"
-    content      = <<-END
-      #cloud-config
-      ${jsonencode({
-        write_files = [
-          {
-            path        = "/etc/aws-kinesis/agent.json"
-            permissions = "0644"
-            owner       = "root:root"
-            encoding    = "b64"
-            content     = filebase64("./resources/agent.json")
-          },
-                    {
-            path        = "/home/ec2-user/.aws/config"
-            permissions = "0644"
-            owner       = "root:root"
-            encoding    = "b64"
-            content     = filebase64("./resources/config")
-          },
-        ]
-      })}
-    END
-  }
-
-  part {
-    content_type = "text/x-shellscript"
-    filename     = "example.sh"
-    content      = file("./resources/EC2_userdata")
-  }
-}
-
-################################################################################
-# KINESI DATA STREAM
-################################################################################
-
-resource "aws_kinesis_stream" "test_stream" {
-  name             = var.stream_name
-  shard_count      = var.number_of_shards
-  retention_period = 24
-
-  shard_level_metrics = [
-    "IncomingBytes",
-    "OutgoingBytes",
-  ]
-
-  stream_mode_details {
-    stream_mode = var.capacity_mode
-  }
-
-  tags = local.user_tag
-}
-
-################################################################################
-# DYNAMO DB
-################################################################################
-
-resource "aws_dynamodb_table" "basic-dynamodb-table" {
-  name           = "CadabraOrders"
-  billing_mode   = "PROVISIONED"
-  read_capacity  = 1
-  write_capacity = 1
-  hash_key       = "CustomerID"
-  range_key      = "OrderID"
-
-   attribute {
-    name = "CustomerID"
-    type = "N"
-  }
-
-  attribute {
-    name = "OrderID"
-    type = "S"
-  }
-
-  tags = local.user_tag
-}
-
-################################################################################
-# LAMBDA
-################################################################################
-
-resource "aws_lambda_function" "test_lambda" {
-  filename      = "./resources/lambda-function01.zip"
-  function_name = "ProcessOrders"
-  role          = module.iam_assumable_role_lambda.iam_role_arn
-  handler       = "lambda-function.lambda_handler"
-  source_code_hash = filebase64sha256("./resources/lambda-function01.zip")
-
-  runtime = "python3.9"
-}
-
-module "iam_assumable_role_lambda" {
-  source            = "github.com/terraform-aws-modules/terraform-aws-iam/modules/iam-assumable-role"
-  trusted_role_arns = []
-  trusted_role_services = [
-    "lambda.amazonaws.com"
-  ]
-  create_role             = true
-  create_instance_profile = false
-  role_name               = "lambda-process-orders"
-  role_requires_mfa       = false
-  custom_role_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonKinesisReadOnlyAccess",
-    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
-  ]
-
-  tags = local.user_tag
-}
-
-resource "aws_lambda_event_source_mapping" "example" {
-  event_source_arn  = aws_kinesis_stream.test_stream.arn
-  function_name     = aws_lambda_function.test_lambda.arn
-  starting_position = "LATEST"
 }
 */
