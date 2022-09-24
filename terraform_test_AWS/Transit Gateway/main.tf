@@ -343,58 +343,109 @@ resource "aws_security_group_rule" "icmp-vm-c" {
 ################################################################################
 
 resource "aws_ec2_transit_gateway" "example" {
-  description = "example"
+  dns_support                     = "enable"
+  vpn_ecmp_support                = "enable"
+  default_route_table_propagation = "disable"
+  default_route_table_association = "disable"
+  auto_accept_shared_attachments  = "enable"
+  multicast_support               = "disable"
         tags = {
     Name = "tgway-VPC-A-B-C"
   }
 }
 
-resource "aws_ec2_transit_gateway_route_table" "example" {
-  transit_gateway_id = aws_ec2_transit_gateway.example.id
-          tags = {
-    Name = "tgway-route-VPC-A-B-C"
-  }
-}
+# VPC-A
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "vpc-a" {
   subnet_ids         = [aws_subnet.a-private.id]
   transit_gateway_id = aws_ec2_transit_gateway.example.id
   vpc_id             = aws_vpc.vpc-a.id
+  transit_gateway_default_route_table_association = false
+  transit_gateway_default_route_table_propagation = false
       tags = {
     Name = "attachment-a"
   }
 }
-/*
+
+resource "aws_ec2_transit_gateway_route_table" "vpc-a" {
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+          tags = {
+    Name = "tgway-route-VPC-A"
+  }
+}
+
 resource "aws_ec2_transit_gateway_route_table_association" "vpc-a" {
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-a.id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.example.id
-}*/
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.vpc-a.id
+}
+
+resource "aws_ec2_transit_gateway_route_table_propagation" "vpc-a-b" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-b.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.vpc-a.id
+}
+
+resource "aws_ec2_transit_gateway_route_table_propagation" "vpc-a-c" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-c.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.vpc-a.id
+}
+
+# VPC-B
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "vpc-b" {
   subnet_ids         = [aws_subnet.b-private.id]
   transit_gateway_id = aws_ec2_transit_gateway.example.id
   vpc_id             = aws_vpc.vpc-b.id
+  transit_gateway_default_route_table_association = false
+  transit_gateway_default_route_table_propagation = false
       tags = {
     Name = "attachment-b"
   }
 }
-/*
+
+resource "aws_ec2_transit_gateway_route_table" "vpc-b" {
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+          tags = {
+    Name = "tgway-route-VPC-B"
+  }
+}
+
 resource "aws_ec2_transit_gateway_route_table_association" "vpc-b" {
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-b.id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.example.id
-}*/
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.vpc-b.id
+}
+
+resource "aws_ec2_transit_gateway_route_table_propagation" "vpc-b-a" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-a.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.vpc-b.id
+}
+
+# VPC-C
 
 resource "aws_ec2_transit_gateway_vpc_attachment" "vpc-c" {
   subnet_ids         = [aws_subnet.c-private.id]
   transit_gateway_id = aws_ec2_transit_gateway.example.id
   vpc_id             = aws_vpc.vpc-c.id
+  transit_gateway_default_route_table_association = false
+  transit_gateway_default_route_table_propagation = false
       tags = {
     Name = "attachment-c"
   }
 }
-/*
+
+resource "aws_ec2_transit_gateway_route_table" "vpc-c" {
+  transit_gateway_id = aws_ec2_transit_gateway.example.id
+          tags = {
+    Name = "tgway-route-VPC-C"
+  }
+}
+
 resource "aws_ec2_transit_gateway_route_table_association" "vpc-c" {
   transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-c.id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.example.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.vpc-c.id
 }
-*/
+
+resource "aws_ec2_transit_gateway_route_table_propagation" "vpc-c-a" {
+  transit_gateway_attachment_id  = aws_ec2_transit_gateway_vpc_attachment.vpc-a.id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.vpc-c.id
+}
+
