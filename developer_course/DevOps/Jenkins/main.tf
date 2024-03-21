@@ -64,6 +64,10 @@ resource "aws_key_pair" "this" {
   public_key = file("./resources/id_rsa.pub")
 }
 
+# When the server is up and running ssh into it and get the Jenkins password
+# sudo cat /var/lib/jenkins/secrets/initialAdminPassword
+# zagron-mIznu5-hyrxij
+
 module "webserver" {
   source = "terraform-aws-modules/ec2-instance/aws"
 
