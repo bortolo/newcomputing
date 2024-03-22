@@ -1,5 +1,9 @@
 #!/bin/bash
 yum update -y
+
+# Install Jenkins
+# Procedure found in the udemy lesson
+# https://docs.google.com/document/d/1J4G1_yRJcrSipD0oorfFiD2sw_9V91FfZT18cX_BUGk/edit#heading=h.7085cw6ki7du
 amazon-linux-extras install -y java-openjdk11
 wget -O /etc/yum.repos.d/jenkins.repo http://pkg.jenkins-ci.org/redhat-stable/jenkins.repo
 rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
@@ -7,3 +11,18 @@ amazon-linux-extras install epel -y
 yum install -y jenkins
 chkconfig jenkins on
 service jenkins start
+
+# Install git
+yum install git -y
+
+# Install packer
+# https://developer.hashicorp.com/packer/tutorials/docker-get-started/get-started-install-cli
+yum install -y yum-utils
+yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+yum -y install packer
+
+# Install terraform
+# https://medium.com/@rajkanchole1/steps-to-install-terraform-on-amazon-linux-15e6eb8763f2
+yum install -y yum-utils
+yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+yum -y install terraform
