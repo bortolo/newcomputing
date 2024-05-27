@@ -40,7 +40,8 @@ module "lambda_APIuser" {
   environmental_variables = {ListOfUsers_table = aws_dynamodb_table.ListOfUsers.name}
   tags = local.tags
   aws_region = var.aws_region
-  apigw_arn = aws_api_gateway_rest_api.my_api.execution_arn
+  //apigw_arn = aws_api_gateway_rest_api.my_api.execution_arn
+  apigw_arn = module.myapgw.APIgateway
 }
 
 #####################################################################################
@@ -65,6 +66,20 @@ resource "aws_dynamodb_table" "ListOfUsers" {
 #####################################################################################
 # API gateway
 #####################################################################################
+
+module myapgw {
+  source = "./modules/apigw"
+  apigw_name = "FirstApp"
+  tags = local.tags
+  aws_region = var.aws_region
+  lambda_invoke_arn = module.lambda_APIuser.invoke_arn
+  methods = {
+    status = {path="status",method="GET"},
+    employee = {path="employee",method="GET"},
+    employees = {path="employees",method="GET"}
+  }
+}
+
 
 resource "aws_api_gateway_rest_api" "my_api" {
   name = "my-api"
@@ -107,7 +122,7 @@ resource "aws_api_gateway_integration" "lambda_integration" {
   uri = module.lambda_APIuser.invoke_arn
 
 }
-
+/*
 resource "aws_api_gateway_method_response" "proxy" {
   rest_api_id = aws_api_gateway_rest_api.my_api.id
   resource_id = aws_api_gateway_resource.status.id
@@ -127,7 +142,7 @@ resource "aws_api_gateway_integration_response" "proxy" {
     aws_api_gateway_integration.lambda_integration
   ]
 }
-
+*/
 # DEPLOY
 
 resource "aws_api_gateway_deployment" "deployment" {
