@@ -14,3 +14,7 @@ variable "tags"{
 variable "aws_region" {
   type    = string
 }
+
+variable "apigw_arn" {
+  type    = string
+}

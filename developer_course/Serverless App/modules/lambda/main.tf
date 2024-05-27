@@ -18,6 +18,15 @@ resource "aws_iam_role_policy_attachment" "attach_iam_policy_to_iam_role" {
  policy_arn  = aws_iam_policy.iam_policy_for_lambda.arn
 }
 
+resource "aws_lambda_permission" "apigw" {
+  statement_id = "AllowExecutionFromAPIGateway"
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.function.function_name
+  principal = "apigateway.amazonaws.com"
+
+  source_arn = "${var.apigw_arn}/*/*/*"
+}
+
 resource "aws_lambda_function" "function" {
 filename                       = "./resources/${var.function_name}/${var.function_name}.zip"
 function_name                  = "${var.function_name}"
