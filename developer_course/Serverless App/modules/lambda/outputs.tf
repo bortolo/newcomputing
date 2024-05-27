@@ -1,3 +1,3 @@
-/*output AWSlayer {
-    value = data.aws_lambda_layer_version.existing.description
-}*/
+output invoke_arn {
+    value = aws_lambda_function.function.invoke_arn
+}

@@ -1,0 +1,19 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+      {
+        "Action": [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ],
+        "Resource": "arn:aws:logs:*:*:*",
+        "Effect": "Allow"
+      },
+      {
+        "Action": "dynamodb:Scan",
+        "Resource": "arn:aws:dynamodb:*:152371567679:table/*",
+        "Effect": "Allow"
+    }
+    ]
+}
