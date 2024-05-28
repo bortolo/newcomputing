@@ -11,7 +11,20 @@
         "Effect": "Allow"
       },
       {
-        "Action": "dynamodb:Scan",
+        "Action": [
+          "dynamodb:Scan",
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:BatchGetItem",
+          "dynamodb:Describe*",
+          "dynamodb:List*",
+          "dynamodb:GetResourcePolicy",
+          "dynamodb:Query",
+          "dynamodb:PartiQLSelect",
+          "dynamodb:DeleteItem",
+          "dynamodb:DeleteTable",
+          "dynamodb:*"
+        ],
         "Resource": "arn:aws:dynamodb:*:152371567679:table/*",
         "Effect": "Allow"
     }

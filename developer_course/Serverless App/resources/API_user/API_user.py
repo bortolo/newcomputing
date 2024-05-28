@@ -6,7 +6,7 @@ from decimal import Decimal
 from boto3.dynamodb.conditions import Key
 
 # Initialize the DynamoDB client
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='eu-central-1')
 dynamodb_table = dynamodb.Table(os.environ['ListOfUsers_table'])
 
 status_check_path = '/status'
@@ -16,7 +16,13 @@ employees_path = '/employees'
 def lambda_handler(event, context):
     print('Request event: ', event)
     response = None
-   
+    body = event['queryStringParameters']
+    # Check if body is a string and needs to be parsed
+    if isinstance(body, str):
+        item = json.loads(body)
+    elif isinstance(body, dict):
+        item = body
+    
     try:
         http_method = event.get('httpMethod')
         path = event.get('path')
@@ -29,13 +35,11 @@ def lambda_handler(event, context):
         elif http_method == 'GET' and path == employees_path:
             response = get_employees()
         elif http_method == 'POST' and path == employee_path:
-            response = save_employee(json.loads(event['body']))
+            response = save_employee(item)
         elif http_method == 'PATCH' and path == employee_path:
-            body = json.loads(event['body'])
-            response = modify_employee(body['employeeId'], body['updateKey'], body['updateValue'])
+            response = modify_employee(item['employeeid'], item['updateKey'], item['updateValue'])
         elif http_method == 'DELETE' and path == employee_path:
-            body = json.loads(event['body'])
-            response = delete_employee(body['employeeId'])
+            response = delete_employee(item['employeeid'])
         else:
             response = build_response(404, '404 Not Found')
 
