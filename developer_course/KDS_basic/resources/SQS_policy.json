@@ -1,0 +1,25 @@
+{
+  "Version": "2012-10-17",
+  "Id": "example-ID",
+  "Statement": [
+      {
+          "Sid": "example-statement-ID",
+          "Effect": "Allow",
+          "Principal": {
+              "Service": "s3.amazonaws.com"
+          },
+          "Action": [
+              "SQS:SendMessage"
+          ],
+          "Resource": "arn:aws:sqs:eu-central-1:152371567679:terraform-example-queue",
+          "Condition": {
+              "ArnLike": {
+                  "aws:SourceArn": "arn:aws:s3:*:*:my-bucket-developercourse-sqs-basic"
+              },
+              "StringEquals": {
+                  "aws:SourceAccount": "152371567679"
+              }
+          }
+      }
+  ]
+}
