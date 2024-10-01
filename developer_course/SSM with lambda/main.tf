@@ -31,6 +31,22 @@ resource "aws_iam_role" "codepipeline_role" {
   })
 }
 
+# Crea il ruolo IAM per cloudbuild
+resource "aws_iam_role" "cloudbuild_role" {
+  name = "cloudbuild_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action    = "sts:AssumeRole",
+      Effect    = "Allow",
+      Principal = {
+        Service = "codebuild.amazonaws.com"
+      }
+    }]
+  })
+}
+
 # Attacca policy al ruolo di CodePipeline
 resource "aws_iam_role_policy" "codepipeline_policy" {
   role = aws_iam_role.codepipeline_role.id
@@ -67,11 +83,46 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
   })
 }
 
+# Attacca policy al ruolo di Cloudbuild
+resource "aws_iam_role_policy" "cloudbuild_policy" {
+  role = aws_iam_role.cloudbuild_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect   = "Allow",
+        Action   = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ],
+        Resource = [
+          "*"
+        ]
+      },
+      {
+        Effect   = "Allow",
+        Action   = [
+          "lambda:UpdateFunctionCode"
+        ],
+        Resource = "${aws_lambda_function.my_lambda.arn}"
+      },
+      {
+        Effect   = "Allow",
+        Action   = [
+          "codebuild:StartBuild",
+          "codebuild:BatchGetBuilds"
+        ],
+        Resource = "*"
+      }
+    ]
+  })
+}
 
 # Progetto CodeBuild
 resource "aws_codebuild_project" "my_codebuild" {
   name          = "my_codebuild_project"
-  service_role  = aws_iam_role.codepipeline_role.arn
+  service_role  = aws_iam_role.cloudbuild_role.arn
 
   source {
     type      = "GITHUB"
@@ -101,7 +152,7 @@ data "aws_ssm_parameter" "github_token" {
   # Se il parametro è di tipo "SecureString" (cifrato), aggiungi questo
   with_decryption = true
 }
-
+/*
 # Definisci il CodePipeline
 resource "aws_codepipeline" "my_pipeline" {
   name     = "my_pipeline"
@@ -128,7 +179,7 @@ resource "aws_codepipeline" "my_pipeline" {
         Owner      = "bortolo"
         Repo       = "git@github.com:bortolo/lambda_codepipeline_AWS.git"
         Branch     = "main" # o il branch che desideri monitorare
-        OAuthToken = data.aws_ssm_parameter.githubtoken.value
+        OAuthToken = data.aws_ssm_parameter.github_token.value
       }
     }
   }
@@ -172,7 +223,7 @@ resource "aws_codepipeline" "my_pipeline" {
     }
   }
 }
-
+*/
 # Ruolo IAM per Lambda
 resource "aws_iam_role" "lambda_exec" {
   name = "lambda_exec_role"
