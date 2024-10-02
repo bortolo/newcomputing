@@ -11,7 +11,7 @@ locals {
 
 # Ruolo IAM per Lambda
 resource "aws_iam_role" "lambda_exec" {
-  name = "lambda_exec_role"
+  name = "${var.lambda_name}-exec_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -46,9 +46,11 @@ resource "aws_iam_role_policy" "lambda_exec_policy" {
 }
 
 # Crea la Lambda function (assumi che l'handler e il ruolo siano già definiti)
+# Per la prima creazione un pacchetto fittizio bulid_output.zip deve essere definito 
+# Non cambiare il nome, se occorre farlo ricordarsi di aggiornare anche buildspec.yml
 resource "aws_lambda_function" "my_lambda" {
   filename         = "build_output.zip"
-  function_name    = "my_lambda_function"
+  function_name    = var.lambda_name
   role             = aws_iam_role.lambda_exec.arn
   handler          = "index.handler"
   runtime          = "python3.8"
@@ -61,7 +63,7 @@ resource "aws_lambda_function" "my_lambda" {
 
 # Crea il ruolo IAM per codebuild
 resource "aws_iam_role" "codebuild_role" {
-  name = "codebuild_role"
+  name = "${var.codebuild_name}-exec_role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -136,12 +138,13 @@ resource "aws_iam_role_policy" "codebuild_policy" {
 
 # Progetto CodeBuild
 resource "aws_codebuild_project" "my_codebuild" {
-  name          = "my_codebuild_project"
+  name          = var.codebuild_name
   service_role  = aws_iam_role.codebuild_role.arn
 
   source {
     type      = "GITHUB"
-    location  = "https://github.com/bortolo/lambda_codepipeline_AWS.git"
+    location  = var.github_url
+    buildspec = file("./resources/buildspec.yml")
   }
 
   environment {
@@ -149,25 +152,61 @@ resource "aws_codebuild_project" "my_codebuild" {
     image                       = "aws/codebuild/standard:5.0"
     type                        = "LINUX_CONTAINER"
     environment_variable {
-      name  = "ENV_VAR"
-      value = "my_value"
+      name  = "LAMBDA_NAME"
+      value = var.lambda_name
+    }
+    environment_variable {
+      name  = "BUCKET_NAME"
+      value = var.bucket_name
     }
   }
 
   artifacts {
-    type = "S3"
-    location = "my-codepipeline-bucket-developercourse-experiments-3"
-    packaging = "ZIP"
-
+    type = "NO_ARTIFACTS"
   }
 
   build_timeout = 5
 }
 
+/*
+  Codebuild only allows a single credential per given server type in a given region. 
+  Therefore, when you define aws_codebuild_source_credential, aws_codebuild_project 
+  resource defined in the same module will use it.
+*/
+resource "aws_codebuild_source_credential" "example" {
+  auth_type   = "PERSONAL_ACCESS_TOKEN"
+  server_type = "GITHUB"
+  token       = data.aws_ssm_parameter.github_token.value
+}
+
+resource "aws_codebuild_webhook" "example" {
+  project_name = aws_codebuild_project.my_codebuild.name
+  build_type   = "BUILD"
+  filter_group {
+    filter {
+      type    = "EVENT"
+      pattern = "PUSH"
+    }
+  }
+}
+
+# Github tocken
+data "aws_ssm_parameter" "github_token" {
+  name = var.github_secret # Il nome del parametro SSM che vuoi ottenere
+  # Se il parametro è di tipo "SecureString" (cifrato), aggiungi questo
+  with_decryption = true
+}
+
+# Bucket S3 per la pipeline (memorizza artefatti build)
+resource "aws_s3_bucket" "codepipeline_bucket" {
+  bucket = var.bucket_name
+  tags = local.tags
+}
+
 #######################################################################################
 # CODEPIPELINE 
 #######################################################################################
-
+/*
 # Crea il ruolo IAM per CodePipeline
 resource "aws_iam_role" "codepipeline_role" {
   name = "codepipeline_role"
@@ -220,20 +259,6 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
   })
 }
 
-# Github tocken
-data "aws_ssm_parameter" "github_token" {
-  name = "/developer-course/lambda-codepipeline/githubtoken" # Il nome del parametro SSM che vuoi ottenere
-  # Se il parametro è di tipo "SecureString" (cifrato), aggiungi questo
-  with_decryption = true
-}
-
-# Bucket S3 per la pipeline (memorizza artefatti build)
-resource "aws_s3_bucket" "codepipeline_bucket" {
-  bucket = "my-codepipeline-bucket-developercourse-experiments-3"
-  tags = local.tags
-}
-
-/*
 # Definisci il CodePipeline
 resource "aws_codepipeline" "my_pipeline" {
   name     = "my_pipeline"

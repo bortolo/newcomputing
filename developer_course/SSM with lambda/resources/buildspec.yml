@@ -1,0 +1,27 @@
+version: 0.2
+
+phases: 
+    install:
+        runtime-versions:
+            python: latest
+        commands:
+            - echo "installing something"
+    build:
+        commands: 
+            - export B_NAME=${BUCKET_NAME}
+            - echo "Zipping deployment package..."
+            - zip -r build_output.zip index.py
+            - echo "DONE!"
+            - echo "Copying .zip into s3 bucket..."
+            - aws s3 cp build_output.zip s3://$B_NAME
+            - echo "DONE!"
+    post_build:
+        commands:
+            - echo "Updating the lambda code..."
+            - export L_NAME=${LAMBDA_NAME}
+            - echo $L_NAME
+            - export B_NAME=${BUCKET_NAME}
+            - echo $B_NAME
+            - aws lambda update-function-code --function-name $L_NAME --s3-bucket $B_NAME --s3-key build_output.zip
+            - echo "DONE!"
+            
