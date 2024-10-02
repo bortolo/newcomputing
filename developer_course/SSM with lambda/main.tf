@@ -40,6 +40,24 @@ resource "aws_iam_role_policy" "lambda_exec_policy" {
           "logs:PutLogEvents"
         ],
         Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        "Action": [
+          "dynamodb:Scan",
+          "dynamodb:PutItem",
+          "dynamodb:GetItem",
+          "dynamodb:BatchGetItem",
+          "dynamodb:Describe*",
+          "dynamodb:List*",
+          "dynamodb:GetResourcePolicy",
+          "dynamodb:Query",
+          "dynamodb:PartiQLSelect",
+          "dynamodb:DeleteItem",
+          "dynamodb:DeleteTable",
+          "dynamodb:*"
+        ],
+        "Resource": "arn:aws:dynamodb:*:152371567679:table/*",
+        "Effect": "Allow"
       }
     ]
   })
@@ -49,12 +67,35 @@ resource "aws_iam_role_policy" "lambda_exec_policy" {
 # Per la prima creazione un pacchetto fittizio bulid_output.zip deve essere definito 
 # Non cambiare il nome, se occorre farlo ricordarsi di aggiornare anche buildspec.yml
 resource "aws_lambda_function" "my_lambda" {
-  filename         = "build_output.zip"
+  filename         = "./resources/build_output.zip"
   function_name    = var.lambda_name
   role             = aws_iam_role.lambda_exec.arn
-  handler          = "index.handler"
+  handler          = "index.lambda_handler"
   runtime          = "python3.8"
-  source_code_hash = filebase64sha256("build_output.zip")
+  source_code_hash = filebase64sha256("./resources/build_output.zip")
+
+  environment {
+    variables = {ListOfUsers_table = aws_dynamodb_table.ListOfUsers.name}
+}
+}
+
+#######################################################################################
+# DYNAMO DB
+#######################################################################################
+
+resource "aws_dynamodb_table" "ListOfUsers" {
+  name           = "ListOfUsers"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 2
+  write_capacity = 2
+  hash_key       = "employeeid"
+
+  attribute {
+    name = "employeeid"
+    type = "S"
+  }
+
+  tags = local.tags
 }
 
 #######################################################################################
@@ -101,7 +142,8 @@ resource "aws_iam_role_policy" "codebuild_policy" {
       {
         Effect   = "Allow",
         Action   = [
-          "lambda:UpdateFunctionCode"
+          "lambda:UpdateFunctionCode",
+          "lambda:InvokeFunction"
         ],
         Resource = "${aws_lambda_function.my_lambda.arn}"
       },

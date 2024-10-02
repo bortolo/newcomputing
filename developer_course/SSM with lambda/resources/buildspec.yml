@@ -8,20 +8,27 @@ phases:
             - echo "installing something"
     build:
         commands: 
+            - export L_NAME=${LAMBDA_NAME}
             - export B_NAME=${BUCKET_NAME}
             - echo "Zipping deployment package..."
             - zip -r build_output.zip index.py
             - echo "DONE!"
             - echo "Copying .zip into s3 bucket..."
             - aws s3 cp build_output.zip s3://$B_NAME
+            - echo "Updating the lambda code..."
+            - aws lambda update-function-code --function-name $L_NAME --s3-bucket $B_NAME --s3-key build_output.zip
             - echo "DONE!"
     post_build:
         commands:
-            - echo "Updating the lambda code..."
             - export L_NAME=${LAMBDA_NAME}
-            - echo $L_NAME
             - export B_NAME=${BUCKET_NAME}
-            - echo $B_NAME
-            - aws lambda update-function-code --function-name $L_NAME --s3-bucket $B_NAME --s3-key build_output.zip
+            - echo "Launching test GET_status..."
+            - PAYLOAD=$(cat test/GET_status.json | base64)
+            - aws lambda invoke --function-name $L_NAME --payload "$PAYLOAD" GET_status_report.txt
+            - cat GET_status_report.txt
+            - echo "Launching test GET_employees..."
+            - PAYLOAD=$(cat test/GET_employees.json | base64)
+            - aws lambda invoke --function-name $L_NAME --payload "$PAYLOAD" GET_employees_report.txt
+            - cat GET_employees_report.txt
             - echo "DONE!"
             
