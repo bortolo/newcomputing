@@ -1,0 +1,17 @@
+version: 0.2
+
+phases: 
+    install:
+        runtime-versions:
+            python: latest
+        commands:
+            - echo "installing something"
+    build:
+        commands: 
+            - export L_NAME=${LAMBDA_NAME}
+            - export L_ALIAS=${ALIAS_NAME}
+            - echo "Updating the alias..."
+            - aws lambda publish-version --function-name $L_NAME
+            - echo "DONE!"
+            - LATEST_VERSION=$(aws lambda list-versions-by-function --function-name $L_NAME | jq -r '.Versions | map(select(.Version != "$LATEST")) | sort_by(.Version) | last | .Version')
+            - aws lambda update-alias --function-name $L_NAME --name $L_ALIAS --function-version $LATEST_VERSION

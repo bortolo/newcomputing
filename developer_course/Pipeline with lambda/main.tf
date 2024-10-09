@@ -67,16 +67,31 @@ resource "aws_iam_role_policy" "lambda_exec_policy" {
 # Per la prima creazione un pacchetto fittizio bulid_output.zip deve essere definito 
 # Non cambiare il nome, se occorre farlo ricordarsi di aggiornare anche buildspec.yml
 resource "aws_lambda_function" "my_lambda" {
-  filename         = "./resources/build_output.zip"
+  filename         = "./resources/build_output.zip" #dummy code to build the very first lambda
   function_name    = var.lambda_name
   role             = aws_iam_role.lambda_exec.arn
   handler          = "index.lambda_handler"
   runtime          = "python3.8"
-  source_code_hash = filebase64sha256("./resources/build_output.zip")
+  #source_code_hash = filebase64sha256("./resources/build_output.zip")
 
   environment {
     variables = {ListOfUsers_table = aws_dynamodb_table.ListOfUsers.name}
 }
+}
+
+
+resource "aws_lambda_alias" "prod_lambda_alias" {
+  name             = "prod"
+  description      = "Alias for production"
+  function_name    = aws_lambda_function.my_lambda.arn
+  function_version = "$LATEST"
+}
+
+resource "aws_lambda_alias" "test_lambda_alias" {
+  name             = var.test_alias
+  description      = "Alias for test"
+  function_name    = aws_lambda_function.my_lambda.arn
+  function_version = "$LATEST"
 }
 
 #######################################################################################
@@ -143,7 +158,10 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         Effect   = "Allow",
         Action   = [
           "lambda:UpdateFunctionCode",
-          "lambda:InvokeFunction"
+          "lambda:InvokeFunction",
+          "lambda:PublishVersion",
+          "lambda:ListVersionsByFunction",
+          "lambda:UpdateAlias"
         ],
         Resource = "${aws_lambda_function.my_lambda.arn}"
       },
@@ -180,13 +198,13 @@ resource "aws_iam_role_policy" "codebuild_policy" {
 
 # Progetto CodeBuild
 resource "aws_codebuild_project" "my_codebuild" {
-  name          = var.codebuild_name
+  name          = "${var.codebuild_name}-update-code"
   service_role  = aws_iam_role.codebuild_role.arn
 
   source {
     type      = "GITHUB"
     location  = var.github_url
-    buildspec = file("./resources/buildspec.yml")
+    buildspec = file("./resources/buildspec-update.yml")
   }
 
   environment {
@@ -200,6 +218,39 @@ resource "aws_codebuild_project" "my_codebuild" {
     environment_variable {
       name  = "BUCKET_NAME"
       value = var.bucket_name
+    }
+  }
+
+  artifacts {
+    type = "NO_ARTIFACTS"
+  }
+
+  build_timeout = 5
+}
+
+#tra codebuild e pipeline non funziona ancora bene il webhook autoomatico!!!
+
+# Progetto CodeBuild
+resource "aws_codebuild_project" "deploy_alias" {
+  name          = "${var.codebuild_name}-deploy-alias"
+  service_role  = aws_iam_role.codebuild_role.arn
+
+  source {
+    type      = "NO_SOURCE"
+    buildspec = file("./resources/buildspec-deploy.yml")
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/standard:5.0"
+    type                        = "LINUX_CONTAINER"
+    environment_variable {
+      name  = "LAMBDA_NAME"
+      value = var.lambda_name
+    }
+    environment_variable {
+      name  = "ALIAS_NAME"
+      value = var.test_alias
     }
   }
 
@@ -232,7 +283,7 @@ resource "aws_codebuild_webhook" "example" {
   }
 }
 
-# Github tocken
+# Github token
 data "aws_ssm_parameter" "github_token" {
   name = var.github_secret # Il nome del parametro SSM che vuoi ottenere
   # Se il parametro è di tipo "SecureString" (cifrato), aggiungi questo
@@ -248,7 +299,7 @@ resource "aws_s3_bucket" "codepipeline_bucket" {
 #######################################################################################
 # CODEPIPELINE 
 #######################################################################################
-/*
+
 # Crea il ruolo IAM per CodePipeline
 resource "aws_iam_role" "codepipeline_role" {
   name = "codepipeline_role"
@@ -325,7 +376,7 @@ resource "aws_codepipeline" "my_pipeline" {
 
       configuration = {
         Owner      = "bortolo"
-        Repo       = "git@github.com:bortolo/lambda_codepipeline_AWS.git"
+        Repo       = "lambda_codepipeline_AWS.git"
         Branch     = "main" # o il branch che desideri monitorare
         OAuthToken = data.aws_ssm_parameter.github_token.value
       }
@@ -334,7 +385,7 @@ resource "aws_codepipeline" "my_pipeline" {
 
   # Fase di compilazione (Build)
   stage {
-    name = "Build"
+    name = "BuildTest"
 
     action {
       name             = "Build"
@@ -351,25 +402,60 @@ resource "aws_codepipeline" "my_pipeline" {
     }
   }
 
-  # Fase di distribuzione (Deploy)
-  stage {
-    name = "Deploy"
+stage {
+    name = "ApprovalToVersion"
 
     action {
-      name            = "Deploy"
-      category        = "Deploy"
-      owner           = "AWS"
-      provider        = "Lambda"
-      version         = "1"
-      input_artifacts = ["build_output"]
+      name             = "ApprovalAction"
+      category         = "Approval"
+      owner            = "AWS"
+      provider         = "Manual"
+      version          = "1"
+      /*configuration = {
+        NotificationARNs = ["arn:aws:sns:eu-central-1:123456789012:your-sns-topic"]  # Sostituisci con il tuo ARN SNS
+        CustomData       = "Please approve the deployment of the new Lambda version."
+        Stage             = "ApprovalStage"
+      }*/
+    }
+  }
+
+    # Fase di update version
+  stage {
+    name = "BuildVersion"
+
+    action {
+      name             = "Build"
+      category         = "Build"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      version          = "1"
+      input_artifacts  = ["source_output"]
+      #output_artifacts = ["build_output"]
 
       configuration = {
-        FunctionName = aws_lambda_function.my_lambda.function_name
-        S3Bucket     = aws_s3_bucket.codepipeline_bucket.bucket
-        S3ObjectKey  = "build_output.zip"
+        ProjectName = aws_codebuild_project.deploy_alias.name
       }
     }
   }
-}
 
-*/
+/*
+    stage {
+    name = "Build prod version"
+
+    action {
+      name             = "Build"
+      category         = "Build"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      version          = "1"
+      input_artifacts  = ["source_output"]
+      output_artifacts = ["build_output"]
+
+      configuration = {
+        ProjectName = aws_codebuild_project.my_codebuild_prod.name
+      }
+    }
+  }
+  */
+
+}

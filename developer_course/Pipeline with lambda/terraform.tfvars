@@ -5,3 +5,4 @@ codebuild_name  = "my_codebuild_project"
 #zip_file_name   = ""
 github_secret   = "/developer-course/lambda-codepipeline/githubtoken" #must be already defined in SSM parameter store
 github_url      = "https://github.com/bortolo/lambda_codepipeline_AWS.git"
+test_alias      = "test"

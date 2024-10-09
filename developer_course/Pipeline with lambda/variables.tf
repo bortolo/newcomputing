@@ -24,3 +24,7 @@ variable "github_secret" {
 variable "github_url" {
   type    = string
 }
+
+variable "test_alias" {
+  type    = string
+}
