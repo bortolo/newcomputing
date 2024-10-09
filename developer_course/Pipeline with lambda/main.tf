@@ -23,6 +23,7 @@ resource "aws_iam_role" "lambda_exec" {
       }
     }]
   })
+    tags = local.tags
 }
 
 # Policy IAM per Lambda
@@ -77,6 +78,7 @@ resource "aws_lambda_function" "my_lambda" {
   environment {
     variables = {ListOfUsers_table = aws_dynamodb_table.ListOfUsers.name}
 }
+  tags = local.tags
 }
 
 
@@ -131,6 +133,7 @@ resource "aws_iam_role" "codebuild_role" {
       }
     }]
   })
+    tags = local.tags
 }
 
 # Attacca policy al ruolo di codebuild
@@ -226,6 +229,7 @@ resource "aws_codebuild_project" "my_codebuild" {
   }
 
   build_timeout = 5
+    tags = local.tags
 }
 
 #tra codebuild e pipeline non funziona ancora bene il webhook autoomatico!!!
@@ -259,6 +263,7 @@ resource "aws_codebuild_project" "deploy_alias" {
   }
 
   build_timeout = 5
+    tags = local.tags
 }
 
 /*
@@ -314,6 +319,8 @@ resource "aws_iam_role" "codepipeline_role" {
       }
     }]
   })
+
+    tags = local.tags
 }
 
 # Attacca policy al ruolo di CodePipeline
@@ -347,9 +354,23 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
           "codebuild:BatchGetBuilds"
         ],
         Resource = "*"
+      },
+      {
+        Effect   = "Allow",
+        Action   = [
+          "codestar-connections:*"
+        ],
+        Resource = "*"
       }
     ]
   })
+}
+
+# Connessione a github
+resource "aws_codestarconnections_connection" "example" {
+  name          = "example-connection"
+  provider_type = "GitHub"
+  tags = local.tags
 }
 
 # Definisci il CodePipeline
@@ -369,16 +390,22 @@ resource "aws_codepipeline" "my_pipeline" {
     action {
       name             = "Source"
       category         = "Source"
-      owner            = "ThirdParty"
-      provider         = "GitHub"
+      owner            = "AWS"
+      provider         = "CodeStarSourceConnection"
       version          = "1"
       output_artifacts = ["source_output"]
 
-      configuration = {
+      /*configuration = {
         Owner      = "bortolo"
         Repo       = "lambda_codepipeline_AWS.git"
         Branch     = "main" # o il branch che desideri monitorare
         OAuthToken = data.aws_ssm_parameter.github_token.value
+      }*/
+
+      configuration = {
+        ConnectionArn    = aws_codestarconnections_connection.example.arn
+        FullRepositoryId = "bortolo/lambda_codepipeline_AWS"
+        BranchName       = "main"
       }
     }
   }
@@ -457,5 +484,7 @@ stage {
     }
   }
   */
+
+  tags = local.tags
 
 }
