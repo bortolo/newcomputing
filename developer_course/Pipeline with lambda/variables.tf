@@ -17,14 +17,18 @@ variable "codebuild_name" {
   type    = string
 }
 
-variable "github_secret" {
-  type    = string
-}
-
 variable "github_url" {
   type    = string
 }
 
 variable "test_alias" {
+  type    = string
+}
+
+variable "github_repo" {
+  type    = string
+}
+
+variable "github_connection_name" {
   type    = string
 }

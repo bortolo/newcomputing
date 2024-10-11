@@ -10,14 +10,12 @@ phases:
         commands: 
             - export L_NAME=${LAMBDA_NAME}
             - export B_NAME=${BUCKET_NAME}
-            - echo "Zipping deployment package..."
+            - echo "Zipping lambda package..."
             - zip -r build_output.zip index.py
             - echo "DONE!"
-            - echo "Copying .zip into s3 bucket..."
-            - aws s3 cp build_output.zip s3://$B_NAME
             - echo "Updating the lambda code..."
-            - aws lambda update-function-code --function-name $L_NAME --s3-bucket $B_NAME --s3-key build_output.zip
-            - sleep 30
+            - aws lambda update-function-code --function-name $L_NAME --zip-file fileb://build_output.zip
+            - sleep 5 #per permettere l'aggiornamento completo della funzione e fare il run dei test sulla funzione aggiornata
             - echo "DONE!"
     post_build:
         commands:
@@ -32,4 +30,9 @@ phases:
             - aws lambda invoke --function-name $L_NAME --payload "$PAYLOAD" GET_employees_report.txt
             - cat GET_employees_report.txt
             - echo "DONE!"
-            
+artifacts:
+    files:
+         - '*.txt'
+    name: test-outputs-${CODEBUILD_START_TIME}
+    packaging: none
+    discard-paths: yes

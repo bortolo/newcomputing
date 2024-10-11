@@ -73,7 +73,6 @@ resource "aws_lambda_function" "my_lambda" {
   role             = aws_iam_role.lambda_exec.arn
   handler          = "index.lambda_handler"
   runtime          = "python3.8"
-  #source_code_hash = filebase64sha256("./resources/build_output.zip")
 
   environment {
     variables = {ListOfUsers_table = aws_dynamodb_table.ListOfUsers.name}
@@ -205,8 +204,7 @@ resource "aws_codebuild_project" "my_codebuild" {
   service_role  = aws_iam_role.codebuild_role.arn
 
   source {
-    type      = "GITHUB"
-    location  = var.github_url
+    type      = "CODEPIPELINE"
     buildspec = file("./resources/buildspec-update.yml")
   }
 
@@ -224,12 +222,16 @@ resource "aws_codebuild_project" "my_codebuild" {
     }
   }
 
+  # Non si riesce a capire come creare artefatti leggibili su S3
+  # L'alternativa è copiarli con comandi da terminali dentro la build e gestire separatamente la gestione degli artifacts
   artifacts {
-    type = "NO_ARTIFACTS"
+    type = "CODEPIPELINE"
+    packaging = "NONE"
+    encryption_disabled = true
   }
 
   build_timeout = 5
-    tags = local.tags
+  tags = local.tags
 }
 
 #tra codebuild e pipeline non funziona ancora bene il webhook autoomatico!!!
@@ -264,35 +266,6 @@ resource "aws_codebuild_project" "deploy_alias" {
 
   build_timeout = 5
     tags = local.tags
-}
-
-/*
-  Codebuild only allows a single credential per given server type in a given region. 
-  Therefore, when you define aws_codebuild_source_credential, aws_codebuild_project 
-  resource defined in the same module will use it.
-*/
-resource "aws_codebuild_source_credential" "example" {
-  auth_type   = "PERSONAL_ACCESS_TOKEN"
-  server_type = "GITHUB"
-  token       = data.aws_ssm_parameter.github_token.value
-}
-
-resource "aws_codebuild_webhook" "example" {
-  project_name = aws_codebuild_project.my_codebuild.name
-  build_type   = "BUILD"
-  filter_group {
-    filter {
-      type    = "EVENT"
-      pattern = "PUSH"
-    }
-  }
-}
-
-# Github token
-data "aws_ssm_parameter" "github_token" {
-  name = var.github_secret # Il nome del parametro SSM che vuoi ottenere
-  # Se il parametro è di tipo "SecureString" (cifrato), aggiungi questo
-  with_decryption = true
 }
 
 # Bucket S3 per la pipeline (memorizza artefatti build)
@@ -367,10 +340,9 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
 }
 
 # Connessione a github
-resource "aws_codestarconnections_connection" "example" {
-  name          = "example-connection"
-  provider_type = "GitHub"
-  tags = local.tags
+# La connessione deve essere già disponibile per questa region
+data "aws_codestarconnections_connection" "example" {
+  name = var.github_connection_name
 }
 
 # Definisci il CodePipeline
@@ -395,15 +367,8 @@ resource "aws_codepipeline" "my_pipeline" {
       version          = "1"
       output_artifacts = ["source_output"]
 
-      /*configuration = {
-        Owner      = "bortolo"
-        Repo       = "lambda_codepipeline_AWS.git"
-        Branch     = "main" # o il branch che desideri monitorare
-        OAuthToken = data.aws_ssm_parameter.github_token.value
-      }*/
-
       configuration = {
-        ConnectionArn    = aws_codestarconnections_connection.example.arn
+        ConnectionArn    = data.aws_codestarconnections_connection.example.arn
         FullRepositoryId = "bortolo/lambda_codepipeline_AWS"
         BranchName       = "main"
       }
@@ -446,7 +411,7 @@ stage {
     }
   }
 
-    # Fase di update version
+  # Fase di update version
   stage {
     name = "BuildVersion"
 
@@ -464,26 +429,6 @@ stage {
       }
     }
   }
-
-/*
-    stage {
-    name = "Build prod version"
-
-    action {
-      name             = "Build"
-      category         = "Build"
-      owner            = "AWS"
-      provider         = "CodeBuild"
-      version          = "1"
-      input_artifacts  = ["source_output"]
-      output_artifacts = ["build_output"]
-
-      configuration = {
-        ProjectName = aws_codebuild_project.my_codebuild_prod.name
-      }
-    }
-  }
-  */
 
   tags = local.tags
 
