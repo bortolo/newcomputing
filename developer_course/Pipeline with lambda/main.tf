@@ -228,6 +228,7 @@ resource "aws_codebuild_project" "my_codebuild" {
     type = "CODEPIPELINE"
     packaging = "NONE"
     encryption_disabled = true
+    namespace_type = "BUILD_ID"
   }
 
   build_timeout = 5
