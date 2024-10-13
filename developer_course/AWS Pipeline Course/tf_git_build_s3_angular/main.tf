@@ -175,6 +175,21 @@ resource "aws_codepipeline" "my_pipeline" {
     name = "Build"
 
     action {
+      name             = "UnitTest"
+      category         = "Test"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      version          = "1"
+      input_artifacts  = ["source_output"]
+
+      configuration = {
+        ProjectName = aws_codebuild_project.my_codebuild_unit_test.name
+      }
+
+      run_order = 1
+    }
+
+    action {
       name             = "Build"
       category         = "Build"
       owner            = "AWS"
@@ -186,6 +201,8 @@ resource "aws_codepipeline" "my_pipeline" {
       configuration = {
         ProjectName = aws_codebuild_project.my_codebuild.name
       }
+
+      run_order = 2
     }
   }
 
@@ -213,7 +230,7 @@ resource "aws_codepipeline" "my_pipeline" {
 }
 
 #######################################################################################
-# CODEBUILD
+# CODEBUILD - BUILD
 #######################################################################################
 
 # Crea il ruolo IAM per codebuild
@@ -278,9 +295,9 @@ resource "aws_iam_role_policy" "codebuild_policy" {
   })
 }
 
-# Progetto CodeBuild
+# Progetto CodeBuild - BUILD
 resource "aws_codebuild_project" "my_codebuild" {
-  name                   = "${var.codebuild_name}-update-code"
+  name                   = "${var.codebuild_name}-build"
   service_role           = aws_iam_role.codebuild_role.arn
   #concurrent_build_limit = 1
 
@@ -301,6 +318,32 @@ resource "aws_codebuild_project" "my_codebuild" {
     packaging = "NONE"
     encryption_disabled = true
     namespace_type = "BUILD_ID"
+  }
+
+  build_timeout = 5
+  tags = local.tags
+}
+
+
+# Progetto CodeBuild - UNIT TEST
+resource "aws_codebuild_project" "my_codebuild_unit_test" {
+  name                   = "${var.codebuild_name}-unit-test"
+  service_role           = aws_iam_role.codebuild_role.arn
+  #concurrent_build_limit = 1
+
+  source {
+    type      = "CODEPIPELINE"
+    buildspec = var.unit_test_buildspec_name
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/standard:7.0" #check you runtime at https://docs.aws.amazon.com/it_it/codebuild/latest/userguide/available-runtimes.html
+    type                        = "LINUX_CONTAINER"
+  }
+
+  artifacts {
+    type = "CODEPIPELINE"
   }
 
   build_timeout = 5

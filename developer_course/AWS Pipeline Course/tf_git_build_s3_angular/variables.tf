@@ -23,3 +23,7 @@ variable "github_connection_name" {
 variable "codebuild_name" {
   type    = string
 }
+
+variable "unit_test_buildspec_name" {
+  type    = string
+}
