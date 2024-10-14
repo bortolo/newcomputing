@@ -44,7 +44,17 @@ resource "aws_iam_role_policy" "ec2_policy" {
         Resource = [
           "*"
         ]
-      }
+      },
+      {
+      "Action": [
+        "codedeploy-commands-secure:GetDeploymentSpecification",
+        "codedeploy-commands-secure:PollHostCommand",
+        "codedeploy-commands-secure:PutHostCommandAcknowledgement",
+        "codedeploy-commands-secure:PutHostCommandComplete"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
     ]
   })
 }
@@ -87,7 +97,7 @@ module "security_group_web" {
   vpc_id      = module.vpc.vpc_id
 
   ingress_cidr_blocks = ["0.0.0.0/0"]
-  ingress_rules       = ["ssh-tcp","all-icmp","http-80-tcp"]
+  ingress_rules       = ["ssh-tcp","all-icmp","http-80-tcp","https-443-tcp"]
   egress_rules        = ["all-all"]
 
 }
@@ -113,6 +123,11 @@ resource "aws_launch_template" "webserver_template" {
   key_name = "ec2-key-pair"
 
   vpc_security_group_ids = [module.security_group_web.security_group_id]
+
+  #Attenzione!!! Server per far funzionare CodeDeploy???
+  network_interfaces {
+      associate_public_ip_address = true
+    }
 
 }
 
@@ -141,8 +156,7 @@ resource "aws_lb" "my_app_loadbalancer" {
   security_groups    = [module.security_group_alb.security_group_id]
   subnets            = [element(module.vpc.public_subnets, 0),element(module.vpc.public_subnets, 1)]
   #subnets            = [for subnet in module.vpc.public_subnets : subnet.vpc_id]
-
-  enable_deletion_protection = true
+  enable_deletion_protection = false
 
   tags = local.tags
 }
@@ -572,6 +586,46 @@ resource "aws_iam_role_policy" "codedeploy_policy" {
   })
 }
 
+# NON SI RIESCE A FARE UN PRIVATE ENDPOINT
+# RIUSCIAMO A FARE DEPLOY SOLO CON INDIRIZZO PUBBLICO DELLE EC2
+# PROVATE ENTRAMBE LE STRADE QUI SOTTO
+# https://docs.aws.amazon.com/it_it/codedeploy/latest/userguide/reference-agent-configuration.html
+# https://docs.aws.amazon.com/it_it/codedeploy/latest/userguide/vpc-endpoints.html#:~:text=To%20use%20Amazon%20VPC%20endpoints,see%20CodeDeploy%20agent%20configuration%20reference.
+# Il DNS viene risolto, il security group probabilmente è giusto
+# quando si va in deployment però codedeploy non riesce a raggiungere le EC2 se non hanno un IP pubblico
+
+resource "aws_vpc_endpoint" "codedeploy" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.codedeploy-commands-secure"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [element(module.vpc.public_subnets, 0),element(module.vpc.public_subnets, 1)]
+  security_group_ids = [aws_security_group.allow_codedeploy.id]
+  private_dns_enabled = true
+
+  tags = local.tags
+}
+
+resource "aws_security_group" "allow_codedeploy" {
+  vpc_id = module.vpc.vpc_id
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = var.network_structure.cidr
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = local.tags
+}
+
+
 resource "aws_codedeploy_app" "foo_app" {
   compute_platform = "Server"
   name             = var.application_name
@@ -603,45 +657,5 @@ resource "aws_codedeploy_deployment_group" "foo" {
       }
     }
   }
-
-}
-
-#######################################################################################
-# BA
-#######################################################################################
-
-module "webserver" {
-  source = "terraform-aws-modules/ec2-instance/aws"
-
-  name                        = "webserver"
-  ami                         = "ami-0e6a13e7a5b66ff4d" #Amazon Linux 2
-  instance_type               = "t2.micro"
-  availability_zone           = element(module.vpc.azs, 0)
-  subnet_id                   = element(module.vpc.public_subnets, 0)
-  vpc_security_group_ids      = [module.security_group_web.security_group_id]
-  associate_public_ip_address = true
-  key_name                    = "ec2-key-pair"
-
-  user_data_base64            = base64encode(file("./resources/userdata.txt"))
-  user_data_replace_on_change = true
-
-  iam_instance_profile        = aws_iam_instance_profile.ec2_instance_profile.name
-
-
-  enable_volume_tags = false
-  root_block_device = [
-    {
-      encrypted   = false
-      volume_type = "gp2"
-      volume_size = 8
-      tags = {
-        Name = "my-root-block"
-      }
-    },
-  ]
-
-    tags = {
-      Application = "MyAngularProject"
-    }
 
 }
