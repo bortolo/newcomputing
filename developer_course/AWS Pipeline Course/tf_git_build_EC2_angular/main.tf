@@ -6,58 +6,6 @@ locals {
 }
 
 #######################################################################################
-# PROD BUCKET website
-#######################################################################################
-
-# Bucket S3 per il website
-resource "aws_s3_bucket" "prod_bucket" {
-  bucket = var.bucket_prod
-  tags = local.tags
-}
-
-resource "aws_s3_bucket_website_configuration" "prod_bucket" {
-  bucket = aws_s3_bucket.prod_bucket.id
-  index_document {
-    suffix = "index.html"
-  }
-  error_document {
-    key = "index.html"
-  }
-}
-
-resource "aws_s3_bucket_versioning" "prod_bucket" {
-  bucket = aws_s3_bucket.prod_bucket.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "prod_bucket" {
-  bucket = aws_s3_bucket.prod_bucket.id
-
-  block_public_acls       = false
-  block_public_policy     = false
-  ignore_public_acls      = false
-  restrict_public_buckets = false
-}
-
-# Configura le policy del bucket per permettere l'accesso pubblico
-resource "aws_s3_bucket_policy" "allow_public_access" {
-  bucket = aws_s3_bucket.prod_bucket.id
-  policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
-      {
-        "Effect": "Allow",
-        "Principal": "*",
-        "Action": "s3:GetObject",
-        "Resource": "${aws_s3_bucket.prod_bucket.arn}/*"
-      }
-    ]
-  })
-}
-
-#######################################################################################
 # EC2 
 #######################################################################################
 

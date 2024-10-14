@@ -3,11 +3,6 @@ variable "aws_region" {
   default = "eu-central-1"
 }
 
-variable "bucket_prod" {
-  type    = string
-  default = "my-codepipeline-bucket-developercourse-experiments-3"
-}
-
 variable "pipeline_name" {
   type    = string
 }
