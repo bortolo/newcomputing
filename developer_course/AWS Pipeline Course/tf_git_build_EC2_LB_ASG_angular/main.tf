@@ -5,6 +5,16 @@ locals {
   }
 }
 
+# Lessons learnt
+# Importante la configurazione per accesso privato al servizio codedeploy
+# IAM per EC2, config file su EC2, private endpoint (sia codedeploy, sia s3 se si usa per artifact)
+# Tempo creazione del laboratorio: 3m 30s (la parte più lunga la prende il ALB)
+# Tempo di esecuzione delle pipeline applicativa: 5m 11s
+#   0m 3s  source
+#   3m 4s  unit test
+#   1m 32s build
+#   0m 32s deploy 
+
 #######################################################################################
 # EC2 in ASG with ALB
 #######################################################################################
@@ -47,10 +57,8 @@ resource "aws_iam_role_policy" "ec2_policy" {
       },
       {
       "Action": [
-        "codedeploy-commands-secure:GetDeploymentSpecification",
-        "codedeploy-commands-secure:PollHostCommand",
-        "codedeploy-commands-secure:PutHostCommandAcknowledgement",
-        "codedeploy-commands-secure:PutHostCommandComplete"
+        "codedeploy-commands-secure:*",
+        "codedeploy:*"
       ],
       "Effect": "Allow",
       "Resource": "*"
@@ -116,18 +124,13 @@ resource "aws_launch_template" "webserver_template" {
     name = aws_iam_instance_profile.ec2_instance_profile.name
   }
 
-  image_id = "ami-0b8dc551227a04753" # must be created before!!!
+  image_id = "ami-003475c38636343f5" # must be created before!!!
 
   instance_type = "t2.micro"
 
   key_name = "ec2-key-pair"
 
   vpc_security_group_ids = [module.security_group_web.security_group_id]
-
-  #Attenzione!!! Server per far funzionare CodeDeploy???
-  network_interfaces {
-      associate_public_ip_address = true
-    }
 
 }
 
@@ -586,17 +589,25 @@ resource "aws_iam_role_policy" "codedeploy_policy" {
   })
 }
 
-# NON SI RIESCE A FARE UN PRIVATE ENDPOINT
-# RIUSCIAMO A FARE DEPLOY SOLO CON INDIRIZZO PUBBLICO DELLE EC2
-# PROVATE ENTRAMBE LE STRADE QUI SOTTO
-# https://docs.aws.amazon.com/it_it/codedeploy/latest/userguide/reference-agent-configuration.html
-# https://docs.aws.amazon.com/it_it/codedeploy/latest/userguide/vpc-endpoints.html#:~:text=To%20use%20Amazon%20VPC%20endpoints,see%20CodeDeploy%20agent%20configuration%20reference.
-# Il DNS viene risolto, il security group probabilmente è giusto
-# quando si va in deployment però codedeploy non riesce a raggiungere le EC2 se non hanno un IP pubblico
 
-resource "aws_vpc_endpoint" "codedeploy" {
+# Endpoint per gestione privata
+
+# Servizio codedeploy-commands-secure
+resource "aws_vpc_endpoint" "codedeploy_1" {
   vpc_id            = module.vpc.vpc_id
   service_name      = "com.amazonaws.${var.aws_region}.codedeploy-commands-secure"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [element(module.vpc.public_subnets, 0),element(module.vpc.public_subnets, 1)]
+  security_group_ids = [aws_security_group.allow_codedeploy.id]
+  private_dns_enabled = true
+
+  tags = local.tags
+}
+
+# Servizio codedeploy
+resource "aws_vpc_endpoint" "codedeploy_2" {
+  vpc_id            = module.vpc.vpc_id
+  service_name      = "com.amazonaws.${var.aws_region}.codedeploy"
   vpc_endpoint_type = "Interface"
   subnet_ids        = [element(module.vpc.public_subnets, 0),element(module.vpc.public_subnets, 1)]
   security_group_ids = [aws_security_group.allow_codedeploy.id]
@@ -625,6 +636,15 @@ resource "aws_security_group" "allow_codedeploy" {
   tags = local.tags
 }
 
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id       = module.vpc.vpc_id
+  service_name = "com.amazonaws.${var.aws_region}.s3"
+
+  route_table_ids = [element(module.vpc.public_route_table_ids,0)]
+
+}
+
+# Configurazione di codedeploy
 
 resource "aws_codedeploy_app" "foo_app" {
   compute_platform = "Server"
