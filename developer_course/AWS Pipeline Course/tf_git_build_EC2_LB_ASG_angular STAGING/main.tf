@@ -320,7 +320,7 @@ resource "aws_codepipeline" "my_pipeline" {
       }
     }
   }
-
+/*
   stage {
     name = "Build"
 
@@ -355,7 +355,26 @@ resource "aws_codepipeline" "my_pipeline" {
       run_order = 2
     }
   }
+*/
+  # Fase di Stage
+    stage {
+    name = "Staging"
 
+    action {
+      name             = "Buildstack"
+      category         = "Build"
+      owner            = "AWS"
+      provider         = "CodeBuild"
+      version          = "1"
+      input_artifacts  = ["source_output"]
+
+      configuration = {
+        ProjectName = aws_codebuild_project.my_codebuild_staging.name
+      }
+    }
+
+  }
+/*
   # Fase di deploy
   stage {
     name = "Deploy"
@@ -374,7 +393,7 @@ resource "aws_codepipeline" "my_pipeline" {
       }
     }
   }
-
+*/
   tags = local.tags
 
 }
@@ -440,6 +459,14 @@ resource "aws_iam_role_policy" "codebuild_policy" {
           "logs:PutLogEvents"
         ],
         Resource = "arn:aws:logs:*:*:*"
+      },
+            {
+        Effect   = "Allow",
+        Action   = [
+          "ec2:*",
+          "iam:PassRole"
+        ],
+        Resource = "*"
       }
     ]
   })
@@ -500,6 +527,36 @@ resource "aws_codebuild_project" "my_codebuild_unit_test" {
   tags = local.tags
 }
 
+
+# Progetto CodeBuild - STAGING WITH TERRAFORM
+resource "aws_codebuild_project" "my_codebuild_staging" {
+  name                   = "${var.codebuild_name}-staging"
+  service_role           = aws_iam_role.codebuild_role.arn
+  #concurrent_build_limit = 1
+
+  source {
+    type      = "CODEPIPELINE"
+    buildspec = var.staging_buildspec_name
+  }
+
+  environment {
+    compute_type                = "BUILD_GENERAL1_SMALL"
+    image                       = "aws/codebuild/amazonlinux2-x86_64-standard:5.0" #check you runtime at https://docs.aws.amazon.com/it_it/codebuild/latest/userguide/available-runtimes.html
+    type                        = "LINUX_CONTAINER"
+    environment_variable {
+      # usiamo lo stesso s3 bucket che usiamo per artifact per comodità
+      name  = "s3-arn-tf-state"
+      value = aws_s3_bucket.artifact_bucket.bucket # verificare che serve arn o altro riferimento
+    }
+  }
+
+  artifacts {
+    type = "CODEPIPELINE"
+  }
+
+  build_timeout = 5
+  tags = local.tags
+}
 
 #######################################################################################
 # CODEDEPLOY - EC2
