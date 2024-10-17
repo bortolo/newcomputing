@@ -23,10 +23,13 @@ variable "unit_test_buildspec_name" {
   type    = string
 }
 
-variable "staging_buildspec_name" {
+variable "apply_staging_buildspec_name" {
   type    = string
 }
 
+variable "destroy_staging_buildspec_name" {
+  type    = string
+}
 
 variable "webserver_name" {
   type    = string
