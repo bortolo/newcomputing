@@ -3,6 +3,7 @@ locals {
     Owner       = "andrea.bortolossi"
     Name        = "AWS-course-codepipeline"
   }
+  deployment_tag = "MyAngularProject-staging"
 }
 
 # INFO DA AGGIORNARE

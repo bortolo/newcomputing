@@ -2,10 +2,15 @@
 # INDEX
 #   CODEPIPELINE
 #   STAGES CONFIGURATIONS
-#       BUILD
-#       STAGING
-#       DEPLOY
+#       BUILD (UnitTest, Build)
+#       STAGING (Apply, Deploy, Manual Approve, Destroy)
+#       DEPLOY (Deploy to prod)
 #   INFRASTRUTTURA PER PIPELINE
+#       S3 for artifact and tf state for staging
+#       S3 vpc endpoint
+#       Codedeploy (x2) vpc endpoint
+#       Github connection
+#       SNS topic for manual approval
 
 #######################################################################################
 # CODEPIPELINE 
@@ -45,10 +50,10 @@ resource "aws_codepipeline" "my_pipeline" {
       }
     }
   }
-/*
+
   stage {
     name = "Build"
-
+/*
     action {
       name             = "UnitTest"
       category         = "Test"
@@ -63,7 +68,7 @@ resource "aws_codepipeline" "my_pipeline" {
 
       run_order = 1
     }
-
+*/
     action {
       name             = "Build"
       category         = "Build"
@@ -77,10 +82,10 @@ resource "aws_codepipeline" "my_pipeline" {
         ProjectName = aws_codebuild_project.my_codebuild.name
       }
 
-      run_order = 2
+      #run_order = 2
     }
   }
-*/
+
   # Fase di Stage
     stage {
     name = "Staging"
@@ -100,6 +105,36 @@ resource "aws_codepipeline" "my_pipeline" {
     }
 
     action {
+      name             = "DeployToEC2"
+      category         = "Deploy"
+      owner            = "AWS"
+      provider         = "CodeDeploy"
+      version          = "1"
+      input_artifacts  = ["build_output"]
+
+      configuration = {
+        ApplicationName     = aws_codedeploy_app.staging_app.name
+        DeploymentGroupName = aws_codedeploy_deployment_group.deployment_staging_app.deployment_group_name
+      }
+      run_order = 2
+    }
+
+    action {
+      name             = "ApprovalAction"
+      category         = "Approval"
+      owner            = "AWS"
+      provider         = "Manual"
+      version          = "1"
+      configuration = {
+       # NotificationArn    = aws_sns_topic.manual_approval.arn  # Sostituisci con il tuo ARN SNS
+        NotificationArn     = aws_sns_topic_subscription.email_subscription.arn
+        # non si capisce quale usare...non funziona
+      }
+        run_order = 3
+    }
+  
+
+    action {
       name             = "DestroyStack"
       category         = "Build"
       owner            = "AWS"
@@ -110,7 +145,7 @@ resource "aws_codepipeline" "my_pipeline" {
       configuration = {
         ProjectName = aws_codebuild_project.my_codebuild_staging_destroy.name
       }
-      run_order = 2
+      run_order = 4
     }
 
   }
@@ -249,12 +284,36 @@ resource "aws_codebuild_project" "my_codebuild_staging_apply" {
       name  = "iam_instance_profile"
       value = aws_iam_instance_profile.ec2_instance_profile.name
     }
+    environment_variable {
+      name  = "deployment_tag"
+      value = local.deployment_tag
+    }
   }
   artifacts {
     type = "CODEPIPELINE"
   }
   build_timeout = 5
   tags = local.tags
+}
+
+#######################################################################################
+# STAGING DEPLOY
+
+resource "aws_codedeploy_app" "staging_app" {
+  compute_platform = "Server"
+  name             = var.application_name
+}
+
+resource "aws_codedeploy_deployment_group" "deployment_staging_app" {
+  app_name               = aws_codedeploy_app.staging_app.name
+  deployment_group_name  = "TaggedEC2Instances"
+  service_role_arn       = aws_iam_role.codedeploy_role.arn
+
+  ec2_tag_filter {
+    key   = "Application"
+    type  = "KEY_AND_VALUE"
+    value = local.deployment_tag
+  }
 }
 
 #######################################################################################
@@ -299,6 +358,10 @@ resource "aws_codebuild_project" "my_codebuild_staging_destroy" {
     environment_variable {
       name  = "iam_instance_profile"
       value = aws_iam_instance_profile.ec2_instance_profile.name
+    }
+    environment_variable {
+      name  = "deployment_tag"
+      value = local.deployment_tag
     }
   }
   artifacts {
@@ -413,4 +476,14 @@ resource "aws_security_group" "allow_codedeploy" {
   tags = local.tags
 }
 
+# Topic for manual approval
+resource "aws_sns_topic" "manual_approval" {
+  name = "${var.application_name}-manual-approval"
+}
 
+# Abbonamento Email al SNS Topic
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.manual_approval.arn
+  protocol  = "email"  # Protocollo email
+  endpoint  = "andrea.bortolossi89@gmail.com"  # Email da abbonare
+}
