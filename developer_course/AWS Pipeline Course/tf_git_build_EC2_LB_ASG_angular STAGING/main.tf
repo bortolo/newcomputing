@@ -7,11 +7,12 @@ locals {
 }
 
 # INFO DA AGGIORNARE
-# Tempo creazione del laboratorio: 3m 30s (la parte più lunga la prende il ALB)
+# Tempo creazione del laboratorio: 3m 30s
 # Tempo di esecuzione delle pipeline applicativa: 5m 11s
 #   0m 3s  source
 #   3m 4s  unit test
 #   1m 32s build
+#   xm xxs staging (manual approve minimo - ricordarsi di approvare subscription)
 #   0m 32s deploy 
 
 
@@ -60,7 +61,6 @@ resource "aws_key_pair" "this" {
   public_key = file("./resources/id_rsa.pub")
 }
 
-/*
 # Launch template for ASG
 resource "aws_launch_template" "webserver_template" {
   name = "web-server-template"
@@ -137,4 +137,3 @@ resource "aws_lb_listener" "front_end" {
     target_group_arn = aws_lb_target_group.my_target_group_for_alb.arn
   }
 }
-*/

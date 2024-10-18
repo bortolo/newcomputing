@@ -23,7 +23,6 @@ resource "aws_codepipeline" "my_pipeline" {
   execution_mode = "QUEUED"
   role_arn = aws_iam_role.codepipeline_role.arn
   
-
   artifact_store {
     location = aws_s3_bucket.artifact_bucket.bucket
     type     = "S3"
@@ -53,7 +52,7 @@ resource "aws_codepipeline" "my_pipeline" {
 
   stage {
     name = "Build"
-/*
+
     action {
       name             = "UnitTest"
       category         = "Test"
@@ -68,7 +67,7 @@ resource "aws_codepipeline" "my_pipeline" {
 
       run_order = 1
     }
-*/
+
     action {
       name             = "Build"
       category         = "Build"
@@ -82,7 +81,7 @@ resource "aws_codepipeline" "my_pipeline" {
         ProjectName = aws_codebuild_project.my_codebuild.name
       }
 
-      #run_order = 2
+      run_order = 2
     }
   }
 
@@ -113,7 +112,7 @@ resource "aws_codepipeline" "my_pipeline" {
       input_artifacts  = ["build_output"]
 
       configuration = {
-        ApplicationName     = aws_codedeploy_app.staging_app.name
+        ApplicationName     = aws_codedeploy_app.main_app.name
         DeploymentGroupName = aws_codedeploy_deployment_group.deployment_staging_app.deployment_group_name
       }
       run_order = 2
@@ -126,13 +125,11 @@ resource "aws_codepipeline" "my_pipeline" {
       provider         = "Manual"
       version          = "1"
       configuration = {
-       # NotificationArn    = aws_sns_topic.manual_approval.arn  # Sostituisci con il tuo ARN SNS
-        NotificationArn     = aws_sns_topic_subscription.email_subscription.arn
-        # non si capisce quale usare...non funziona
+       NotificationArn    = aws_sns_topic.manual_approval.arn
+       #TODO: come passare dinamicamente URL della ec2 create dallot stage?
       }
         run_order = 3
     }
-  
 
     action {
       name             = "DestroyStack"
@@ -149,7 +146,7 @@ resource "aws_codepipeline" "my_pipeline" {
     }
 
   }
-/*
+
   # Fase di deploy
   stage {
     name = "Deploy"
@@ -163,12 +160,12 @@ resource "aws_codepipeline" "my_pipeline" {
       input_artifacts  = ["build_output"]
 
       configuration = {
-        ApplicationName     = aws_codedeploy_app.foo_app.name
+        ApplicationName     = aws_codedeploy_app.main_app.name
         DeploymentGroupName = aws_codedeploy_deployment_group.foo.deployment_group_name
       }
     }
   }
-*/
+
   tags = local.tags
 
 }
@@ -186,7 +183,6 @@ resource "aws_codepipeline" "my_pipeline" {
 resource "aws_codebuild_project" "my_codebuild" {
   name                   = "${var.codebuild_name}-build"
   service_role           = aws_iam_role.codebuild_role.arn
-  #concurrent_build_limit = 1
 
   source {
     type      = "CODEPIPELINE"
@@ -198,8 +194,7 @@ resource "aws_codebuild_project" "my_codebuild" {
     type                        = "LINUX_CONTAINER"
   }
 
-  # Non si riesce a capire come creare artefatti leggibili su S3
-  # L'alternativa è copiarli con comandi da terminali dentro la build e gestire separatamente la gestione degli artifacts
+  #TODO: Non si riesce a capire come creare artefatti leggibili su S3
   artifacts {
     type = "CODEPIPELINE"
     packaging = "NONE"
@@ -216,7 +211,6 @@ resource "aws_codebuild_project" "my_codebuild" {
 resource "aws_codebuild_project" "my_codebuild_unit_test" {
   name                   = "${var.codebuild_name}-unit-test"
   service_role           = aws_iam_role.codebuild_role.arn
-  #concurrent_build_limit = 1
 
   source {
     type      = "CODEPIPELINE"
@@ -246,7 +240,7 @@ resource "aws_codebuild_project" "my_codebuild_unit_test" {
 resource "aws_codebuild_project" "my_codebuild_staging_apply" {
   name                   = "${var.codebuild_name}-staging-apply"
   service_role           = aws_iam_role.codebuild_role.arn
-  #concurrent_build_limit = 1
+
   source {
     type      = "CODEPIPELINE"
     buildspec = var.apply_staging_buildspec_name
@@ -258,7 +252,7 @@ resource "aws_codebuild_project" "my_codebuild_staging_apply" {
     environment_variable {
       # usiamo lo stesso s3 bucket che usiamo per artifact per comodità
       name  = "s3-arn-tf-state"
-      value = aws_s3_bucket.artifact_bucket.bucket # verificare che serve arn o altro riferimento
+      value = aws_s3_bucket.artifact_bucket.bucket # TODO: non si riesce a passare una variabile per state remoto
     }
     environment_variable {
       name  = "vpc_id"
@@ -299,13 +293,13 @@ resource "aws_codebuild_project" "my_codebuild_staging_apply" {
 #######################################################################################
 # STAGING DEPLOY
 
-resource "aws_codedeploy_app" "staging_app" {
+resource "aws_codedeploy_app" "main_app" {
   compute_platform = "Server"
   name             = var.application_name
 }
 
 resource "aws_codedeploy_deployment_group" "deployment_staging_app" {
-  app_name               = aws_codedeploy_app.staging_app.name
+  app_name               = aws_codedeploy_app.main_app.name
   deployment_group_name  = "TaggedEC2Instances"
   service_role_arn       = aws_iam_role.codedeploy_role.arn
 
@@ -321,7 +315,7 @@ resource "aws_codedeploy_deployment_group" "deployment_staging_app" {
 resource "aws_codebuild_project" "my_codebuild_staging_destroy" {
   name                   = "${var.codebuild_name}-staging-destroy"
   service_role           = aws_iam_role.codebuild_role.arn
-  #concurrent_build_limit = 1
+
   source {
     type      = "CODEPIPELINE"
     buildspec = var.destroy_staging_buildspec_name
@@ -378,10 +372,10 @@ resource "aws_codebuild_project" "my_codebuild_staging_destroy" {
 resource "aws_codedeploy_app" "foo_app" {
   compute_platform = "Server"
   name             = var.application_name
-}
+}*/
 
 resource "aws_codedeploy_deployment_group" "foo" {
-  app_name               = aws_codedeploy_app.foo_app.name
+  app_name               = aws_codedeploy_app.main_app.name
   deployment_group_name  = "MyAutoscalingGroup"
   service_role_arn       = aws_iam_role.codedeploy_role.arn
   autoscaling_groups     = [aws_autoscaling_group.webserver_asg.name]
@@ -404,13 +398,13 @@ auto_rollback_configuration {
   }
 
 }
-*/
+
 #######################################################################################
 # INFRASTRUTTURA PER PIPELINE
 #######################################################################################
 
 # Bucket S3 per artifact store
-# NOTA: si usa questo bucket anche per gli stati tarrefoarmo delle infra temporanee (es. staging)
+# NOTA: si usa questo bucket anche per gli stati tarraform delle infra temporanee (es. staging)
 resource "aws_s3_bucket" "artifact_bucket" {
   bucket = "${var.pipeline_name}-artifact-store"
   tags = local.tags

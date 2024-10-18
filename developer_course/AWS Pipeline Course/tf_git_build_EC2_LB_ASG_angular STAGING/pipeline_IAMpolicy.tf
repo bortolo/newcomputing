@@ -72,6 +72,13 @@ resource "aws_iam_role_policy" "codepipeline_policy" {
           "codedeploy:GetApplicationRevision"
         ],
         Resource = "*"
+      },
+            {
+        Effect   = "Allow",
+        Action   = [
+          "sns:*"
+        ],
+        Resource = "*"
       }
     ]
   })
