@@ -1,0 +1,5 @@
+aws_region                       = "eu-central-1"
+pipeline_name                    = "my-github-pipeline-ecs"
+codebuild_name                   = "my-angular-build-ecs"
+github_repo                      = "bortolo/my-angular-repo-docker"
+github_connection_name           = "my-github-connection"
