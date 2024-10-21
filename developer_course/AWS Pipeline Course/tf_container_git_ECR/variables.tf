@@ -3,6 +3,13 @@ variable "aws_region" {
   default = "eu-central-1"
 }
 
+variable "ecr_buildspec_name" {
+  type = string
+}
+variable application_name {
+  type    = string
+}
+
 variable "pipeline_name" {
   type    = string
 }

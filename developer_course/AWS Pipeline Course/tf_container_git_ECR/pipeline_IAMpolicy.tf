@@ -148,7 +148,7 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         ],
         Resource = "arn:aws:logs:*:*:*"
       },
-            {
+      {
         Effect   = "Allow",
         Action   = [
           "ec2:*",
@@ -156,12 +156,24 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         ],
         Resource = "*"
       },
-            {
+      {
         Effect   = "Allow",
         Action   = [
           "ssm:GetParameters"
         ],
         Resource = "arn:aws:ssm:eu-central-1:152371567679:parameter/dockerhub/*" #update the parameter arn
+      },
+      {
+        "Effect": "Allow",  
+        "Action": [
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:CompleteLayerUpload",
+          "ecr:GetAuthorizationToken",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:UploadLayerPart"
+          ],
+        "Resource": "*"
       }
     ]
   })

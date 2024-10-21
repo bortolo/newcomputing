@@ -85,6 +85,7 @@ resource "aws_codebuild_project" "my_codebuild" {
   
   source {
     type      = "CODEPIPELINE"
+    buildspec = var.ecr_buildspec_name
   }
 
   environment {
@@ -108,7 +109,10 @@ resource "aws_codebuild_project" "my_codebuild" {
       type          = "PARAMETER_STORE"
     }
 */
-
+    environment_variable {
+      name          = "AWS_ACCOUNT_ID"
+      value         = "152371567679"
+    }
   }
 
 
@@ -156,4 +160,11 @@ resource "aws_vpc_endpoint" "s3" {
 # NOTA: la connessione deve essere già disponibile per questa region
 data "aws_codestarconnections_connection" "example" {
   name = var.github_connection_name
+}
+
+# ECR repository
+resource "aws_ecr_repository" "my_ecr" {
+  name                 = var.application_name
+  image_tag_mutability = "MUTABLE"
+  force_delete = true
 }
